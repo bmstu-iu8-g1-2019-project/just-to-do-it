@@ -7,6 +7,7 @@ import (
 	_ "github.com/lib/pq"
 	"log"
 	"net/http"
+	"os"
 )
 
 type Object struct {
@@ -37,7 +38,7 @@ func main () {
 	r := mux.NewRouter()
 	r.HandleFunc("/serv", env.respAllData).Methods("GET")
 	r.HandleFunc("/serv/{str}", env.respOneData).Methods("GET")
-	http.ListenAndServe(":3000", r)
+	http.ListenAndServe(":" + os.Getenv("PORT"), nil)
 }
 
 // FOR /serv/{id}

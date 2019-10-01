@@ -1,4 +1,14 @@
+os: linux
+
+sudo: required
+
+services:
+  - docker
+
 language: go
 
-script:
-  -go test
+jobs:
+  include:
+    - name: "tests"
+      script:
+        - go test
