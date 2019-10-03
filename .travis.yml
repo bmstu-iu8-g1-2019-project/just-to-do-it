@@ -12,3 +12,9 @@ jobs:
     - name: "tests"
       script:
         - go test
+
+after_success:
+  -sh .travis/deploy_docker.sh
+
+notifications:
+  email: false
