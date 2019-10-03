@@ -15,6 +15,7 @@ jobs:
 
 after_success:
   - sh .travis/deploy_docker.sh
+  - test “$TRAVIS_BRANCH” = “master” && sh .travis/deploy_heroku.sh
 
 notifications:
   email: false
