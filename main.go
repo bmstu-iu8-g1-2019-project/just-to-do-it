@@ -1,7 +1,6 @@
 package main
 
 import (
-	"authorization(krasivo)/authorization"
 	"github.com/gorilla/mux"
 	"log"
 	"net/http"
