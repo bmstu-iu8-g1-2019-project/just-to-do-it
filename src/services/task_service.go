@@ -1,7 +1,7 @@
 package services
 
 import (
-	"https://github.com/bmstu-iu8-g1-2019-project/just-to-do-it/src/models"
+	"github.com/bmstu-iu8-g1-2019-project/just-to-do-it/src/models"
 	"database/sql"
 )
 
