@@ -17,17 +17,11 @@ func (db *DB) Login(login string) (obj User, err error) {
 }
 
 //register
-func (db *DB) Register(r *http.Request) (err error) {
-	obj := &User{}
-	err = json.NewDecoder(r.Body).Decode(obj)
-	if err != nil {
-		return err
-	}
-
+func (db *DB) Register(obj User) (err error) {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(obj.Password), 8)
 
 	_, err = db.Exec("INSERT INTO usertab (email, login, fullname, password, acc_verified) values ($1, $2, $3, $4, $5)",
-		obj.Email, obj.Login, obj.Fullname, string(hashedPassword), obj.Acc_verified)
+		                    obj.Email, obj.Login, obj.Fullname, string(hashedPassword), obj.Acc_verified)
 	if err != nil {
 		return err
 	}
@@ -41,6 +35,7 @@ func (db *DB) Register(r *http.Request) (err error) {
 	}
 	return nil
 }
+
 
 //confirm&hash=...
 func (db *DB) Confirm(hash string) (err error) {

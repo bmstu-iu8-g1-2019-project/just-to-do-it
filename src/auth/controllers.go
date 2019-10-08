@@ -29,7 +29,14 @@ func (env *Environment) responseLoginHandler (w http.ResponseWriter, r *http.Req
 }
 
 func (env *Environment) responseRegisterHandler (w http.ResponseWriter, r *http.Request) {
-	err := env.db.Register(r)
+	obj := &User{}
+	err := json.NewDecoder(r.Body).Decode(obj)
+	if err != nil {
+		http.Error(w, http.StatusText(400), 400)
+		return
+	}
+
+	err = env.db.Register(*obj)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			http.Error(w, http.StatusText(401), 401)

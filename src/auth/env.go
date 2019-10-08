@@ -8,7 +8,7 @@ import (
 
 type Datastore interface {
 	Login(string) (User, error)
-	Register(r *http.Request) (error)
+	Register(User) (error)
 	Confirm(string) (error)
 }
 
