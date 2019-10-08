@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"strconv"
 	"github.com/bmstu-iu8-g1-2019-project/just-to-do-it/src/services"
-	"github.com/bmstu-iu8-g1-2019-project/just-to-do-it/src/models"
 )
 
 func TaskView(w http.ResponseWriter, r* http.Request) {
