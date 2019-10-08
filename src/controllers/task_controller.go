@@ -14,7 +14,7 @@ func TaskView(w http.ResponseWriter, r* http.Request) {
 
 	taskId, _ := strconv.ParseInt(mux.Vars(r)["id"], 10, 64)
 
-	task := (*services.DB).GetTaskByTaskId(&models.Environment{}, taskId)
+	task := (*services.DB).GetTaskByTaskId(&models.DB{}, taskId)
 
 	if task == nil {
 		w.WriteHeader(http.StatusNotFound)
