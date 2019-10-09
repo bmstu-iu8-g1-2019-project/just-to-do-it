@@ -1,7 +1,7 @@
 package services
 
 import (
-	"github.com/bmstu-iu8-g1-2019-project/just-to-do-it/src/models"
+	"../models"
 	"database/sql"
 )
 
@@ -23,7 +23,7 @@ func (db *DB) GetTaskByTaskId(id int64) (*models.Task) {
 	return task
 }
 
-func (db *DB) GetTaskByAssigneeId(id int) []models.Task {
+func (db *DB) GetTaskByAssigneeId(id int64) []models.Task {
 	query := "SELECT * FROM task where assignee_id = $1"
 	rows, err := db.Query(query, id)
 	if err != nil {
@@ -46,7 +46,7 @@ func (db *DB) GetTaskByAssigneeId(id int) []models.Task {
 	return tasks
 }
 
-func (db *DB) GetTaskByGroupId(id int) []models.Task {
+func (db *DB) GetTaskByGroupId(id int64) []models.Task {
 	query := "SELECT * FROM task where group_id = $1"
 	rows, err := db.Query(query, id)
 	if err != nil {
