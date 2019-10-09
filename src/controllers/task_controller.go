@@ -5,7 +5,7 @@ import (
 	"github.com/gorilla/mux"
 	"net/http"
 	"strconv"
-	"../services"
+	"github.com/bmstu-iu8-g1-2019-project/just-to-do-it/src/services"
 )
 
 func GetTaskByTaskIdHandler(w http.ResponseWriter, r* http.Request) {
