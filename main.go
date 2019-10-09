@@ -20,5 +20,7 @@ func main () {
 	r.HandleFunc("/login", env.responseLoginHandler).Methods("GET")
 	r.HandleFunc("/register", env.responseRegisterHandler).Methods("POST")
 	r.HandleFunc("/confirm", env.confirmEmailHandler).Methods("GET")
+	r.HandleFunc("/user/{id}", env.updateUserHandler).Methods("PUT")
+	r.HandleFunc("/user/{id}", env.getUserHandler).Methods("GET")
 	http.ListenAndServe(":3000", r)
 }

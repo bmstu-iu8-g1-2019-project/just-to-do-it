@@ -10,6 +10,8 @@ type Datastore interface {
 	Login(string) (User, error)
 	Register(User) (error)
 	Confirm(string) (error)
+	updateUser(int, User) (error)
+	getUser(int) (User, error)
 }
 
 type Environment struct {
