@@ -12,6 +12,7 @@ type Datastore interface {
 	Confirm(string) (error)
 	updateUser(int, User) (error)
 	getUser(int) (User, error)
+        deleteUser(int) (error)
 }
 
 type Environment struct {

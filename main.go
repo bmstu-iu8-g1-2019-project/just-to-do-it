@@ -22,5 +22,6 @@ func main () {
 	r.HandleFunc("/confirm", env.confirmEmailHandler).Methods("GET")
 	r.HandleFunc("/user/{id}", env.updateUserHandler).Methods("PUT")
 	r.HandleFunc("/user/{id}", env.getUserHandler).Methods("GET")
+        r.HandleFunc("/user/{id}", env.deleteUserHandler).Methods("DELETE")
 	http.ListenAndServe(":3000", r)
 }

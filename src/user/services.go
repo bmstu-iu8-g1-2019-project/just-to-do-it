@@ -21,3 +21,16 @@ func (db *DB) updateUser (id int, updateUser User) (err error) {
 	return nil
 }
 
+func (db *DB) deleteUser (id int) (err error) {
+	row := db.QueryRow("SELECT * FROM usertab WHERE id = $1", id)
+	var user User
+	err = row.Scan(&user.Id, &user.Email, &user.Login, &user.Fullname, &user.Password, &user.Acc_verified)
+	if err != nil {
+		return err
+	}
+	_, err = db.Exec("DELETE  FROM usertab WHERE id = $1", id)
+	if err != nil {
+		return err
+	}
+	return nil
+}

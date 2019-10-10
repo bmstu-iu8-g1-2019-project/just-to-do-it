@@ -45,3 +45,22 @@ func (env *Environment) updateUserHandler (w http.ResponseWriter, r *http.Reques
 		return
 	}
 }
+
+func (env *Environment) deleteUserHandler (w http.ResponseWriter, r *http.Request) {
+	paramFromURL := mux.Vars(r)
+	id, err := strconv.Atoi(paramFromURL["id"])
+	if err != nil {
+		http.Error(w, http.StatusText(404), 404)
+		return
+	}
+	err = env.db.deleteUser(id)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			http.Error(w, http.StatusText(404), 404)
+			return
+		}
+		http.Error(w, http.StatusText(500), 500)
+		return
+	}
+}
+
