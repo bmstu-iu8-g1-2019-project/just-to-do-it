@@ -69,3 +69,36 @@ func (db *DB) GetTaskByGroupId(id int64) []models.Task {
 	return tasks
 }
 
+func (db *DB) UpdateTaskAllProperties(task models.Task) error {
+	query := "UPDATE task SET (id, assignee_id, title, description, state," +
+		"deadline, priority, creation_datetime, group_id) values" +
+			"($1, $2, $3, $4, $5, $6, $7, $8, $9)"
+
+	_, err := db.Exec(query, task.Id, task.AssigneeId, task.Title,
+		task.Description,
+			task.State, task.Deadline, task.Priority, task.CreationDatetime,
+				task.GroupId)
+
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (db *DB) PostTask(task models.Task) error {
+	query := "INSERT INTO task (assignee_id, title, description, state," +
+		"deadline, priority, creation_datetime, group_id)values" +
+			"($1, $2, $3, $4, $5, $6, $7, $8, $9)"
+
+	_, err := db.Exec(query, task.Id, task.AssigneeId, task.Title,
+		task.Description,
+		task.State, task.Deadline, task.Priority, task.CreationDatetime,
+		task.GroupId)
+
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+
