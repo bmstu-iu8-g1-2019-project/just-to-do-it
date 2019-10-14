@@ -9,22 +9,33 @@ import (
 	"strconv"
 )
 
-func GetTaskByTaskIdHandler(w http.ResponseWriter, r* http.Request) {
+
+func GetTaskTIdHandler(w http.ResponseWriter, r* http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 
-	taskId, _ := strconv.ParseInt(mux.Vars(r)["id"], 10, 64)
+	tmp := mux.Vars(r)["assignee_id"]
+	if tmp == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	taskId, err := strconv.ParseInt(tmp, 10, 64)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 
 	db := services.DB{}
-	task := db.GetTaskByTaskId(taskId)
+	task := db.GetTaskTId(taskId)
 
 	if task == nil {
 		w.WriteHeader(http.StatusNotFound)
 		return
 	}
 
-	err := json.NewEncoder(w).Encode(task)
+	err = json.NewEncoder(w).Encode(task)
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
@@ -32,22 +43,31 @@ func GetTaskByTaskIdHandler(w http.ResponseWriter, r* http.Request) {
 
 }
 
-func GetTaskByAssigneeIdIdHandler(w http.ResponseWriter, r *http.Request) {
+func GetTasksAIdHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 
-	assigneeId, _ := strconv.ParseInt(mux.Vars(r)["assignee_id"], 10, 64)
+	tmp := mux.Vars(r)["assignee_id"]
+	if tmp == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	assigneeId, err := strconv.ParseInt(tmp, 10, 64)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+	}
 
 	db := services.DB{}
-	tasks := db.GetTaskByAssigneeId(assigneeId)
+	tasks := db.GetTasksAId(assigneeId)
 
 	if len(tasks) == 0 {
 		w.WriteHeader(http.StatusNotFound)
 		return
 	}
 
-	err := json.NewEncoder(w).Encode(tasks)
+	err = json.NewEncoder(w).Encode(tasks)
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
@@ -55,40 +75,50 @@ func GetTaskByAssigneeIdIdHandler(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func GetTaskByGroupIdHandler(w http.ResponseWriter, r *http.Request) {
+func GetTasksGIdHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 
-	groupId, _ := strconv.ParseInt(mux.Vars(r)["assignee_id"], 10, 64)
+	tmp := mux.Vars(r)["assignee_id"]
+	if tmp == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	groupId, err := strconv.ParseInt(tmp, 10, 64)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 
 	db := services.DB{}
-	tasks := db.GetTaskByGroupId(groupId)
+	tasks := db.GetTasksGId(groupId)
 
 	if len(tasks) == 0 {
 		w.WriteHeader(http.StatusNotFound)
 		return
 	}
 
-	err := json.NewEncoder(w).Encode(tasks)
+	err = json.NewEncoder(w).Encode(tasks)
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
 	w.WriteHeader(http.StatusOK)
 }
 
-func UpdateTaskAllProperties(w http.ResponseWriter, r *http.Request) {
+func UpdateTask(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 
 	task := models.Task{}
 	err := json.NewDecoder(r.Body).Decode(task)
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
 	db := services.DB{}
-	err = db.UpdateTaskAllProperties(task)
+	err = db.UpdateTask(task)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return
@@ -96,24 +126,24 @@ func UpdateTaskAllProperties(w http.ResponseWriter, r *http.Request) {
 
 	err = json.NewEncoder(w).Encode(task)
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 	w.WriteHeader(http.StatusOK)
 }
 
-func PostTask(w http.ResponseWriter, r *http.Request) {
+func CreateTask(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 
 	task := models.Task{}
 	err := json.NewDecoder(r.Body).Decode(task)
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
 	db := services.DB{}
-	err = db.PostTask(task)
+	err = db.CreateTask(task)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return
@@ -121,7 +151,7 @@ func PostTask(w http.ResponseWriter, r *http.Request) {
 
 	err = json.NewEncoder(w).Encode(task)
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 	w.WriteHeader(http.StatusOK)

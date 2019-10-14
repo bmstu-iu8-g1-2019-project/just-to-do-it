@@ -5,13 +5,19 @@ import (
 	"database/sql"
 )
 
+const (
+	g_query = "(assignee_id, title, description, state," +
+		"deadline, priority, creation_datetime, group_id) values" +
+		"($1, $2, $3, $4, $5, $6, $7, $8, $9)"
+)
 type DB struct {
 	*sql.DB
 }
 
-func (db *DB) GetTaskByTaskId(id int64) (*models.Task) {
-	query := "SELECT * FROM task where id = $1"
-	row := db.QueryRow(query)
+func (db *DB) GetTaskTId(id int64) (*models.Task) {
+	row := db.QueryRow("SELECT * FROM task where id = $1")
+
+	defer db.Close()
 
 	task := &models.Task{}
 	err := row.Scan(&task.Id, &task.AssigneeId, &task.Title, &task.Description,
@@ -23,11 +29,13 @@ func (db *DB) GetTaskByTaskId(id int64) (*models.Task) {
 	return task
 }
 
-func (db *DB) GetTaskByAssigneeId(id int64) []models.Task {
-	query := "SELECT * FROM task where assignee_id = $1"
-	rows, err := db.Query(query, id)
+func (db *DB) GetTasksAId(id int64) []models.Task {
+	rows, err := db.Query("SELECT * FROM task where assignee_id = $1", id)
+
+	defer db.Close()
+
 	if err != nil {
-		panic(err)
+		return nil
 	}
 
 	tasks := make([]models.Task, 0)
@@ -38,7 +46,7 @@ func (db *DB) GetTaskByAssigneeId(id int64) []models.Task {
 			&task.State, &task.Deadline, &task.Priority, &task.CreationDatetime,
 			&task.GroupId)
 		if err != nil {
-			panic(err)
+			return nil
 		}
 
 		tasks = append(tasks, *task)
@@ -46,11 +54,13 @@ func (db *DB) GetTaskByAssigneeId(id int64) []models.Task {
 	return tasks
 }
 
-func (db *DB) GetTaskByGroupId(id int64) []models.Task {
-	query := "SELECT * FROM task where group_id = $1"
-	rows, err := db.Query(query, id)
+func (db *DB) GetTasksGId(id int64) []models.Task {
+	rows, err := db.Query("SELECT * FROM task where group_id = $1", id)
+
+	defer db.Close()
+
 	if err != nil {
-		panic(err)
+		return nil
 	}
 
 	tasks := make([]models.Task, 0)
@@ -61,7 +71,7 @@ func (db *DB) GetTaskByGroupId(id int64) []models.Task {
 			&task.State, &task.Deadline, &task.Priority, &task.CreationDatetime,
 			&task.GroupId)
 		if err != nil {
-			panic(err)
+			return nil
 		}
 
 		tasks = append(tasks, *task)
@@ -69,15 +79,13 @@ func (db *DB) GetTaskByGroupId(id int64) []models.Task {
 	return tasks
 }
 
-func (db *DB) UpdateTaskAllProperties(task models.Task) error {
-	query := "UPDATE task SET (id, assignee_id, title, description, state," +
-		"deadline, priority, creation_datetime, group_id) values" +
-			"($1, $2, $3, $4, $5, $6, $7, $8, $9)"
-
-	_, err := db.Exec(query, task.Id, task.AssigneeId, task.Title,
+func (db *DB) UpdateTask(task models.Task) error {
+	_, err := db.Exec("UPDATE task SET " + g_query, task.Id, task.AssigneeId, task.Title,
 		task.Description,
 			task.State, task.Deadline, task.Priority, task.CreationDatetime,
 				task.GroupId)
+
+	defer db.Close()
 
 	if err != nil {
 		return err
@@ -85,15 +93,13 @@ func (db *DB) UpdateTaskAllProperties(task models.Task) error {
 	return nil
 }
 
-func (db *DB) PostTask(task models.Task) error {
-	query := "INSERT INTO task (assignee_id, title, description, state," +
-		"deadline, priority, creation_datetime, group_id)values" +
-			"($1, $2, $3, $4, $5, $6, $7, $8, $9)"
-
-	_, err := db.Exec(query, task.Id, task.AssigneeId, task.Title,
+func (db *DB) CreateTask(task models.Task) error {
+	_, err := db.Exec("INSERT INTO task " + g_query, task.Id, task.AssigneeId, task.Title,
 		task.Description,
 		task.State, task.Deadline, task.Priority, task.CreationDatetime,
 		task.GroupId)
+
+	defer db.Close()
 
 	if err != nil {
 		return err
