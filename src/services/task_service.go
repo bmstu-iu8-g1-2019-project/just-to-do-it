@@ -2,7 +2,7 @@ package services
 
 import (
 	"github.com/bmstu-iu8-g1-2019-project/just-to-do-it/src/models"
-	"database/sql"
+	"github.com/bmstu-iu8-g1-2019-project/just-to-do-it/src/controllers"
 )
 
 const (
@@ -10,11 +10,18 @@ const (
 		"deadline, priority, creation_datetime, group_id) values" +
 		"($1, $2, $3, $4, $5, $6, $7, $8, $9)"
 )
-type DB struct {
-	*sql.DB
+
+
+type Datastore interface  {
+	GetTaskTId(id int64) (*models.Task)
+	GetTasksAId(id int64) []models.Task
+	GetTasksGId(id int64) []models.Task
+	UpdateTask(task models.Task) error
+	CreateTask(task models.Task) error
 }
 
-func (db *DB) GetTaskTId(id int64) (*models.Task) {
+
+func (db *DB) GetTaskTId(id int64) *models.Task {
 	row := db.QueryRow("SELECT * FROM task where id = $1")
 
 	defer db.Close()

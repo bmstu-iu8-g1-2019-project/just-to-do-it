@@ -9,10 +9,11 @@ import (
 	"strconv"
 )
 
+type EnvironmentUser struct {
+	Db services.Datastore
+}
 
-func GetTaskTIdHandler(w http.ResponseWriter, r* http.Request) {
-	w.Header().Set("Content-Type", "application/json; charset=utf-8")
-
+func (env *EnvironmentUser)GetTaskTIdHandler(w http.ResponseWriter, r* http.Request) {
 	tmp := mux.Vars(r)["assignee_id"]
 	if tmp == "" {
 		w.WriteHeader(http.StatusBadRequest)
@@ -25,8 +26,7 @@ func GetTaskTIdHandler(w http.ResponseWriter, r* http.Request) {
 		return
 	}
 
-	db := services.DB{}
-	task := db.GetTaskTId(taskId)
+	task := env.Db.GetTaskTId(taskId)
 
 	if task == nil {
 		w.WriteHeader(http.StatusNotFound)
@@ -43,9 +43,7 @@ func GetTaskTIdHandler(w http.ResponseWriter, r* http.Request) {
 
 }
 
-func GetTasksAIdHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json; charset=utf-8")
-
+func (env *EnvironmentUser)GetTasksAIdHandler(w http.ResponseWriter, r *http.Request) {
 	tmp := mux.Vars(r)["assignee_id"]
 	if tmp == "" {
 		w.WriteHeader(http.StatusBadRequest)
@@ -57,8 +55,7 @@ func GetTasksAIdHandler(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 	}
 
-	db := services.DB{}
-	tasks := db.GetTasksAId(assigneeId)
+	tasks := env.Db.GetTasksAId(assigneeId)
 
 	if len(tasks) == 0 {
 		w.WriteHeader(http.StatusNotFound)
@@ -75,9 +72,7 @@ func GetTasksAIdHandler(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func GetTasksGIdHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json; charset=utf-8")
-
+func (env *EnvironmentUser)GetTasksGIdHandler(w http.ResponseWriter, r *http.Request) {
 	tmp := mux.Vars(r)["assignee_id"]
 	if tmp == "" {
 		w.WriteHeader(http.StatusBadRequest)
@@ -90,8 +85,7 @@ func GetTasksGIdHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	db := services.DB{}
-	tasks := db.GetTasksGId(groupId)
+	tasks := env.Db.GetTasksGId(groupId)
 
 	if len(tasks) == 0 {
 		w.WriteHeader(http.StatusNotFound)
@@ -107,9 +101,7 @@ func GetTasksGIdHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-func UpdateTask(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json; charset=utf-8")
-
+func (env *EnvironmentUser)UpdateTask(w http.ResponseWriter, r *http.Request) {
 	task := models.Task{}
 	err := json.NewDecoder(r.Body).Decode(task)
 	if err != nil {
@@ -117,8 +109,7 @@ func UpdateTask(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	db := services.DB{}
-	err = db.UpdateTask(task)
+	err = env.Db.UpdateTask(task)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return
@@ -132,9 +123,7 @@ func UpdateTask(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-func CreateTask(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json; charset=utf-8")
-
+func (env *EnvironmentUser)CreateTask(w http.ResponseWriter, r *http.Request) {
 	task := models.Task{}
 	err := json.NewDecoder(r.Body).Decode(task)
 	if err != nil {
@@ -142,8 +131,7 @@ func CreateTask(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	db := services.DB{}
-	err = db.CreateTask(task)
+	err = env.Db.CreateTask(task)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return
