@@ -2,7 +2,9 @@ package services
 
 import (
 	"dev-s/src/models"
+	"fmt"
 	"golang.org/x/crypto/bcrypt"
+	"time"
 )
 
 type Datastore interface {
@@ -35,7 +37,7 @@ func (db *DB) Register(obj models.User) (err error) {
 	if err != nil {
 		return err
 	}
-	err = db.sendMail(obj.Login, obj.Email)
+	err = db.sendMail(obj.Login)
 	if err != nil {
 		return err
 	}
@@ -46,15 +48,33 @@ func (db *DB) Confirm(hash string) (err error) {
 	var conf models.AuthConfirmation
 	row := db.QueryRow("SELECT * FROM auth_confirmation WHERE hash = $1", hash)
 	err = row.Scan(&conf.Login, &conf.Hash, &conf.Deadline)
-	_, err = db.Exec("UPDATE user_table SET acc_verified = true where login = $1", conf.Login)
 	if err != nil {
+		fmt.Println(err)
 		return err
 	}
-	_, err = db.Exec("DELETE  FROM auth_confirmation WHERE hash = $1", hash)
-	if err != nil {
-		return err
+	if conf.Deadline.Before(time.Now()) {
+		newHash := addressGenerator(conf.Login)
+		err = db.confirmFieldUpdate(conf.Login, newHash)
+		if err != nil {
+			return err
+		}
+		err = db.sendMail(conf.Login)
+		if err != nil {
+			fmt.Println(err)
+			return err
+		}
+		return nil
+	} else {
+		_, err = db.Exec("UPDATE user_table SET acc_verified = true where login = $1", conf.Login)
+		if err != nil {
+			return err
+		}
+		_, err = db.Exec("DELETE  FROM auth_confirmation WHERE hash = $1", hash)
+		if err != nil {
+			return err
+		}
+		return nil
 	}
-	return nil
 }
 
 func (db *DB) UpdateUser (id int, updateUser models.User) (err error) {

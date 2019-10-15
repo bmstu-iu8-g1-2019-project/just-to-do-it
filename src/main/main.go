@@ -4,7 +4,8 @@ import (
 	"log"
 	"net/http"
 
-	"dev-s/src/controllers"
+	//"dev-s/src/controllers"
+	"github.com/bmstu-iu8-g1-2019-project/just-to-do-it/tree/dev-s/src/controllers"
 	"dev-s/src/services"
 	"github.com/gorilla/mux"
 	_ "github.com/lib/pq"
