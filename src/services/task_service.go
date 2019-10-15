@@ -1,8 +1,8 @@
 package services
 
 import (
-	"github.com/bmstu-iu8-g1-2019-project/just-to-do-it/src/models"
-	"github.com/bmstu-iu8-g1-2019-project/just-to-do-it/src/controllers"
+	"dev-d/src/models"
+	"dev-d/src/controllers"
 )
 
 const (
