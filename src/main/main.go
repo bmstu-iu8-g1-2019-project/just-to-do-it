@@ -3,8 +3,8 @@ package main
 import (
 	"log"
 	"net/http"
-	"dev-d/src/controllers"
-	"dev-d/src/services"
+	"https://github.com/bmstu-iu8-g1-2019-project/just-to-do-it/tree/dev-d/src/controllers"
+	"https://github.com/bmstu-iu8-g1-2019-project/just-to-do-it/tree/dev-d/src/services"
 	"github.com/gorilla/mux"
 	_ "github.com/lib/pq"
 )
