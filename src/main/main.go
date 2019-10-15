@@ -1,13 +1,14 @@
 package main
 
 import (
-	"log"
-	"net/http"
-	"github.com/bmstu-iu8-g1-2019-project/just-to-do-it/tree/dev-d/src/controllers"
-	"github.com/bmstu-iu8-g1-2019-project/just-to-do-it/tree/dev-d/src/services"
+	"github.com/bmstu-iu8-g1-2019-project/just-to-do-it/src/controllers"
+	"github.com/bmstu-iu8-g1-2019-project/just-to-do-it/src/services"
 	"github.com/gorilla/mux"
 	_ "github.com/lib/pq"
+	"log"
+	"net/http"
 )
+
 func main() {
 	db, err := services.NewDB(services.OpenConfigFile("config.txt"))
 	if err != nil {

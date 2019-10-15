@@ -1,9 +1,9 @@
 package controllers
 
 import (
-	"github.com/bmstu-iu8-g1-2019-project/just-to-do-it/tree/dev-d/src/services/src/models"
-	"github.com/bmstu-iu8-g1-2019-project/just-to-do-it/tree/dev-d/src/services"
 	"encoding/json"
+	"github.com/bmstu-iu8-g1-2019-project/just-to-do-it/src/models"
+	"github.com/bmstu-iu8-g1-2019-project/just-to-do-it/src/services"
 	"github.com/gorilla/mux"
 	"net/http"
 	"strconv"
