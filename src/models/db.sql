@@ -9,7 +9,7 @@ CREATE TABLE usertab (
 );
 
 CREATE TABLE auth_confirmation (
-    login varchar(32),
+    login varchar(32) UNIQUE,
     hash varchar(128) UNIQUE,
-    deadline timestamp
+    deadline TIMESTAMP WITH TIME ZONE
 );
