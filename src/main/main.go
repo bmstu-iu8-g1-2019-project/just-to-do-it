@@ -15,7 +15,7 @@ func main() {
 		log.Panic(err)
 	}
 
-	env := &controllers.EnvironmentUser{ db}
+	env := &controllers.EnvironmentTask{ db}
 
 	r := mux.NewRouter()
 	r.Use(SetJSONHeader)

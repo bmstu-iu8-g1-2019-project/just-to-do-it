@@ -9,11 +9,11 @@ import (
 	"strconv"
 )
 
-type EnvironmentUser struct {
+type EnvironmentTask struct {
 	Db services.Datastore
 }
 
-func (env *EnvironmentUser)GetTaskTIdHandler(w http.ResponseWriter, r* http.Request) {
+func (env *EnvironmentTask)GetTaskTIdHandler(w http.ResponseWriter, r* http.Request) {
 	tmp := mux.Vars(r)["assignee_id"]
 	if tmp == "" {
 		w.WriteHeader(http.StatusBadRequest)
@@ -43,7 +43,7 @@ func (env *EnvironmentUser)GetTaskTIdHandler(w http.ResponseWriter, r* http.Requ
 
 }
 
-func (env *EnvironmentUser)GetTasksAIdHandler(w http.ResponseWriter, r *http.Request) {
+func (env *EnvironmentTask)GetTasksAIdHandler(w http.ResponseWriter, r *http.Request) {
 	tmp := mux.Vars(r)["assignee_id"]
 	if tmp == "" {
 		w.WriteHeader(http.StatusBadRequest)
@@ -72,7 +72,7 @@ func (env *EnvironmentUser)GetTasksAIdHandler(w http.ResponseWriter, r *http.Req
 
 }
 
-func (env *EnvironmentUser)GetTasksGIdHandler(w http.ResponseWriter, r *http.Request) {
+func (env *EnvironmentTask)GetTasksGIdHandler(w http.ResponseWriter, r *http.Request) {
 	tmp := mux.Vars(r)["assignee_id"]
 	if tmp == "" {
 		w.WriteHeader(http.StatusBadRequest)
@@ -101,7 +101,7 @@ func (env *EnvironmentUser)GetTasksGIdHandler(w http.ResponseWriter, r *http.Req
 	w.WriteHeader(http.StatusOK)
 }
 
-func (env *EnvironmentUser)UpdateTask(w http.ResponseWriter, r *http.Request) {
+func (env *EnvironmentTask)UpdateTask(w http.ResponseWriter, r *http.Request) {
 	task := models.Task{}
 	err := json.NewDecoder(r.Body).Decode(task)
 	if err != nil {
@@ -123,7 +123,7 @@ func (env *EnvironmentUser)UpdateTask(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-func (env *EnvironmentUser)CreateTask(w http.ResponseWriter, r *http.Request) {
+func (env *EnvironmentTask)CreateTask(w http.ResponseWriter, r *http.Request) {
 	task := models.Task{}
 	err := json.NewDecoder(r.Body).Decode(task)
 	if err != nil {
