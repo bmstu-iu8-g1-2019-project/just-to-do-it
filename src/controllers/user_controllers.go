@@ -2,13 +2,15 @@ package controllers
 
 import (
 	"encoding/json"
-	"github.com/bmstu-iu8-g1-2019-project/just-to-do-it/src/auth"
-	"github.com/bmstu-iu8-g1-2019-project/just-to-do-it/src/utils"
-	"github.com/bmstu-iu8-g1-2019-project/just-to-do-it/src/models"
-	"github.com/bmstu-iu8-g1-2019-project/just-to-do-it/src/services"
-	"github.com/gorilla/mux"
 	"net/http"
 	"strconv"
+
+	"github.com/gorilla/mux"
+
+	"github.com/bmstu-iu8-g1-2019-project/just-to-do-it/src/auth"
+	"github.com/bmstu-iu8-g1-2019-project/just-to-do-it/src/models"
+	"github.com/bmstu-iu8-g1-2019-project/just-to-do-it/src/services"
+	"github.com/bmstu-iu8-g1-2019-project/just-to-do-it/src/utils"
 )
 
 type EnvironmentUser struct {
@@ -21,13 +23,13 @@ func (env *EnvironmentUser) ResponseLoginHandler(w http.ResponseWriter, r *http.
 	// write from the received data to the User structure
 	err := json.NewDecoder(r.Body).Decode(&user)
 	if err != nil {
-		utils.Respond(w, utils.Message(false,"Invalid body","Bad Request"))
+		utils.Respond(w, utils.Message(false, "Invalid body", "Bad Request"))
 		return
 	}
 	// function checks login and password in database
 	user, err = env.Db.Login(user.Login, user.Password)
 	if err != nil {
-		utils.Respond(w, utils.Message(false,"Invalid login or password","Unauthorized"))
+		utils.Respond(w, utils.Message(false, "Invalid login or password", "Unauthorized"))
 		return
 	}
 	resp := auth.CreateTokenAndSetCookie(w, user)
@@ -40,16 +42,16 @@ func (env *EnvironmentUser) ResponseLoginHandler(w http.ResponseWriter, r *http.
 	utils.Respond(w, resp)
 }
 
-func (env *EnvironmentUser) ResponseRegisterHandler (w http.ResponseWriter, r *http.Request) {
+func (env *EnvironmentUser) ResponseRegisterHandler(w http.ResponseWriter, r *http.Request) {
 	user := models.User{}
 	err := json.NewDecoder(r.Body).Decode(&user)
 	if err != nil {
-		utils.Respond(w, utils.Message(false,"Invalid body","Bad Request"))
+		utils.Respond(w, utils.Message(false, "Invalid body", "Bad Request"))
 		return
 	}
 
-	if user.Password == ""  || user.Login == "" || user.Email == ""{
-		utils.Respond(w, utils.Message(false,"Invalid body","Bad Request"))
+	if user.Password == "" || user.Login == "" || user.Email == "" {
+		utils.Respond(w, utils.Message(false, "Invalid body", "Bad Request"))
 		return
 	}
 	//function that detects the user and hashes his password
@@ -68,7 +70,7 @@ func (env *EnvironmentUser) ResponseRegisterHandler (w http.ResponseWriter, r *h
 	utils.Respond(w, resp)
 }
 
-func (env *EnvironmentUser) ConfirmEmailHandler (w http.ResponseWriter, r *http.Request) {
+func (env *EnvironmentUser) ConfirmEmailHandler(w http.ResponseWriter, r *http.Request) {
 	hash := r.URL.Query().Get("hash")
 	err := env.Db.Confirm(hash)
 	if err != nil {
@@ -78,11 +80,11 @@ func (env *EnvironmentUser) ConfirmEmailHandler (w http.ResponseWriter, r *http.
 	w.WriteHeader(http.StatusOK)
 }
 
-func (env *EnvironmentUser) GetUserHandler (w http.ResponseWriter, r *http.Request) {
+func (env *EnvironmentUser) GetUserHandler(w http.ResponseWriter, r *http.Request) {
 	paramFromURL := mux.Vars(r)
 	id, err := strconv.Atoi(paramFromURL["id"])
 	if err != nil {
-		utils.Respond(w, utils.Message(false,"Invalid id","Bad Request"))
+		utils.Respond(w, utils.Message(false, "Invalid id", "Bad Request"))
 		return
 	}
 
@@ -96,7 +98,7 @@ func (env *EnvironmentUser) GetUserHandler (w http.ResponseWriter, r *http.Reque
 	//Get user
 	user, err := env.Db.GetUser(int(id))
 	if err != nil {
-		utils.Respond(w, utils.Message(false,"Not found user in db","Internal Server Error"))
+		utils.Respond(w, utils.Message(false, "Not found user in db", "Internal Server Error"))
 		return
 	}
 	resp = utils.Message(true, "Get user", "")
@@ -104,24 +106,24 @@ func (env *EnvironmentUser) GetUserHandler (w http.ResponseWriter, r *http.Reque
 	utils.Respond(w, resp)
 }
 
-func (env *EnvironmentUser) UpdateUserHandler (w http.ResponseWriter, r *http.Request) {
+func (env *EnvironmentUser) UpdateUserHandler(w http.ResponseWriter, r *http.Request) {
 	user := models.User{}
 	//получаем из запроса структуру
 	err := json.NewDecoder(r.Body).Decode(&user)
 	if err != nil {
-		utils.Respond(w, utils.Message(false,"Invalid body","Bad Request"))
+		utils.Respond(w, utils.Message(false, "Invalid body", "Bad Request"))
 		return
 	}
-	if  user.Email == "" || user.Fullname == "" ||
+	if user.Email == "" || user.Fullname == "" ||
 		user.Login == "" || user.Password == "" {
-		utils.Respond(w, utils.Message(false,"Invalid body","Bad Request"))
+		utils.Respond(w, utils.Message(false, "Invalid body", "Bad Request"))
 		return
 	}
 	//получаем из url id
 	paramFromURL := mux.Vars(r)
 	id, err := strconv.Atoi(paramFromURL["id"])
 	if err != nil {
-		utils.Respond(w, utils.Message(false,"Invalid id","Bad Request"))
+		utils.Respond(w, utils.Message(false, "Invalid id", "Bad Request"))
 		return
 	}
 
@@ -143,11 +145,11 @@ func (env *EnvironmentUser) UpdateUserHandler (w http.ResponseWriter, r *http.Re
 	utils.Respond(w, resp)
 }
 
-func (env *EnvironmentUser) DeleteUserHandler (w http.ResponseWriter, r *http.Request) {
+func (env *EnvironmentUser) DeleteUserHandler(w http.ResponseWriter, r *http.Request) {
 	paramFromURL := mux.Vars(r)
 	id, err := strconv.Atoi(paramFromURL["id"])
 	if err != nil {
-		utils.Respond(w, utils.Message(false,"Invalid id","Bad Request"))
+		utils.Respond(w, utils.Message(false, "Invalid id", "Bad Request"))
 		return
 	}
 	//проверка и в случае таймута рефреш токена
@@ -159,7 +161,7 @@ func (env *EnvironmentUser) DeleteUserHandler (w http.ResponseWriter, r *http.Re
 
 	err = env.Db.DeleteUser(id)
 	if err != nil {
-		utils.Respond(w, utils.Message(false,"Database error","Internal Server Error"))
+		utils.Respond(w, utils.Message(false, "Database error", "Internal Server Error"))
 		return
 	}
 	resp = utils.Message(true, "User deleted", "")
