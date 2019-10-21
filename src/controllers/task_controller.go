@@ -1,16 +1,17 @@
 package controllers
 
 import (
+	"net/http"
+	"strconv"
 	"encoding/json"
+
 	"github.com/bmstu-iu8-g1-2019-project/just-to-do-it/src/models"
 	"github.com/bmstu-iu8-g1-2019-project/just-to-do-it/src/services"
 	"github.com/gorilla/mux"
-	"net/http"
-	"strconv"
 )
 
 type EnvironmentTask struct {
-	Db services.Datastore
+	Db services.DatastoreTask
 }
 
 func (env *EnvironmentTask)GetTaskTIdHandler(w http.ResponseWriter, r* http.Request) {

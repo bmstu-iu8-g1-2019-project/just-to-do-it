@@ -11,7 +11,7 @@ const (
 )
 
 
-type Datastore interface  {
+type DatastoreTask interface  {
 	GetTaskTId(id int64) (*models.Task)
 	GetTasksAId(id int64) []models.Task
 	GetTasksGId(id int64) []models.Task

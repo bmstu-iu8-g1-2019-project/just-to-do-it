@@ -1,14 +1,15 @@
 package services
 
 import (
-	"dev-s/src/models"
 	"fmt"
-	"golang.org/x/crypto/bcrypt"
 	"time"
+	
+	"golang.org/x/crypto/bcrypt"
+	"github.com/bmstu-iu8-g1-2019-project/just-to-do-it/src/models"
 )
 
-type Datastore interface {
-	Login(string) (models.User, error)
+type DatastoreUser interface {
+	Login(string, string) (error)
 	Register(models.User) (error)
 	Confirm(string) (error)
 	UpdateUser(int, models.User) (error)
@@ -16,13 +17,17 @@ type Datastore interface {
 	DeleteUser(int) (error)
 }
 
-func (db *DB)Login(login string) (obj models.User, err error) {
+func (db *DB)Login(login string, password string) (err error) {
+	var obj models.User
 	row := db.QueryRow("SELECT * FROM user_table WHERE login = $1", login)
 	err = row.Scan(&obj.Id, &obj.Email, &obj.Login, &obj.Fullname, &obj.Password, &obj.AccVerified)
 	if err != nil {
-		return models.User{}, err
+		return err
 	}
-	return obj, nil
+	if err = bcrypt.CompareHashAndPassword([]byte(obj.Password), []byte(password)); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (db *DB) Register(obj models.User) (err error) {
