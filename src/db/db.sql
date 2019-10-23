@@ -1,5 +1,5 @@
 CREATE DATABASE postgres;
-CREATE TABLE usertab (
+CREATE TABLE user_table (
     id SERIAL PRIMARY KEY UNIQUE,
     email varchar(64),
     login varchar(32) UNIQUE,

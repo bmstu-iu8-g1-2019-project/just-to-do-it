@@ -6,14 +6,13 @@ import (
 	"net/http"
 	"strconv"
 
-	"golang.org/x/crypto/bcrypt"
+	"github.com/bmstu-iu8-g1-2019-project/just-to-do-it/src/models"
+	"github.com/bmstu-iu8-g1-2019-project/just-to-do-it/src/services"
 	"github.com/gorilla/mux"
-	"dev-s/src/services"
-	"dev-s/src/models"
 )
 
 type EnvironmentUser struct {
-	Db services.Datastore
+	Db services.DatastoreUser
 }
 
 func (env *EnvironmentUser) ResponseLoginHandler(w http.ResponseWriter, r *http.Request) {
@@ -23,17 +22,12 @@ func (env *EnvironmentUser) ResponseLoginHandler(w http.ResponseWriter, r *http.
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-
-	obj, err := env.Db.Login(received_object.Login)
+	err = env.Db.Login(received_object.Login, received_object.Password)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			w.WriteHeader(http.StatusNotFound)
 			return
 		}
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-	if err = bcrypt.CompareHashAndPassword([]byte(obj.Password), []byte(received_object.Password)); err != nil {
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}

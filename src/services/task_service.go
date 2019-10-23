@@ -1,116 +1,113 @@
 package services
 
 import (
+	"strconv"
+	"strings"
+	"fmt"
+	"time"
+
 	"github.com/bmstu-iu8-g1-2019-project/just-to-do-it/src/models"
 )
 
-const (
-	g_query = "(assignee_id, title, description, state," +
-		"deadline, priority, creation_datetime, group_id) values" +
-		"($1, $2, $3, $4, $5, $6, $7, $8, $9)"
-)
-
-
-type Datastore interface  {
-	GetTaskTId(id int64) (*models.Task)
-	GetTasksAId(id int64) []models.Task
-	GetTasksGId(id int64) []models.Task
-	UpdateTask(task models.Task) error
-	CreateTask(task models.Task) error
+type DatastoreTask interface  {
+	GetTask(int, int, string, int) ([]models.Task, error)
+	UpdateTask(models.Task, int) error
+	CreateTask(models.Task, int) error
+	DeleteTask(int) error
 }
 
+func(db* DB) GetTask(id int, assigneeId int, title string, groupId int) (tasks []models.Task ,err error) {
 
-func (db *DB) GetTaskTId(id int64) *models.Task {
-	row := db.QueryRow("SELECT * FROM task where id = $1")
-
-	defer db.Close()
-
-	task := &models.Task{}
-	err := row.Scan(&task.Id, &task.AssigneeId, &task.Title, &task.Description,
-		&task.State, &task.Deadline, &task.Priority, &task.CreationDatetime,
-			&task.GroupId)
-	if err != nil {
-		return nil
+	queryMap := make(map[string]interface{})
+	if id != 0 {
+		queryMap["id"] = id
 	}
-	return task
-}
+	if assigneeId != 0 {
+		queryMap["assignee_id"] = assigneeId
+	}
+	if title != "" {
+		queryMap["title"] = title
+	}
+	if groupId != 0 {
+		queryMap["group_id"] = groupId
+	}
+	query := "SELECT id, assignee_id, title, description, state, deadline, priority, creation_datetime, group_id FROM task_table WHERE "
 
-func (db *DB) GetTasksAId(id int64) []models.Task {
-	rows, err := db.Query("SELECT * FROM task where assignee_id = $1", id)
+	var values []interface{}
+	var where []string
+	i := 1
+	for k, v := range queryMap {
+		values = append(values, v)
+		where = append(where, fmt.Sprintf("%s = $%s", k, strconv.Itoa(i)))
+		i++
+	}
+	fmt.Println(query + strings.Join(where, " AND "))
 
-	defer db.Close()
-
+	rows, err := db.Query(query + strings.Join(where, " AND "), values...)
 	if err != nil {
-		return nil
+		return tasks, err
 	}
 
-	tasks := make([]models.Task, 0)
+	tasks = make([]models.Task, 0)
 
 	for rows.Next() {
 		task := &models.Task{}
-		err := rows.Scan(&task.Id, &task.AssigneeId, &task.Title, &task.Description,
-			&task.State, &task.Deadline, &task.Priority, &task.CreationDatetime,
-			&task.GroupId)
+		err = rows.Scan(&task.Id, &task.AssigneeId, &task.Title, &task.Description,
+			            &task.State, &task.Deadline, &task.Priority, &task.CreationDatetime,
+			            &task.GroupId)
 		if err != nil {
-			return nil
+			return tasks, err
 		}
 
 		tasks = append(tasks, *task)
 	}
-	return tasks
+	return tasks, nil
 }
 
-func (db *DB) GetTasksGId(id int64) []models.Task {
-	rows, err := db.Query("SELECT * FROM task where group_id = $1", id)
-
-	defer db.Close()
-
-	if err != nil {
-		return nil
-	}
-
-	tasks := make([]models.Task, 0)
-
-	for rows.Next() {
-		task := &models.Task{}
-		err := rows.Scan(&task.Id, &task.AssigneeId, &task.Title, &task.Description,
-			&task.State, &task.Deadline, &task.Priority, &task.CreationDatetime,
-			&task.GroupId)
-		if err != nil {
-			return nil
-		}
-
-		tasks = append(tasks, *task)
-	}
-	return tasks
-}
-
-func (db *DB) UpdateTask(task models.Task) error {
-	_, err := db.Exec("UPDATE task SET " + g_query, task.Id, task.AssigneeId, task.Title,
-		task.Description,
-			task.State, task.Deadline, task.Priority, task.CreationDatetime,
-				task.GroupId)
-
-	defer db.Close()
-
+func (db *DB) UpdateTask(task models.Task, Id int) error {
+	_, err := db.Exec("UPDATE task_table SET assignee_id = $1, title = $2, description = $3, state = $4, deadline = $5," +
+		" priority = $6, creation_datetime = $7, group_id = $8 where id = $9",
+		task.AssigneeId, task.Title, task.Description, task.State,
+		task.Deadline, task.Priority, task.CreationDatetime,
+		task.GroupId, Id)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (db *DB) CreateTask(task models.Task) error {
-	_, err := db.Exec("INSERT INTO task " + g_query, task.Id, task.AssigneeId, task.Title,
+func (db *DB) GetTaskById (id int) (task models.Task, err error) {
+	row := db.QueryRow("SELECT * FROM task_table WHERE id = $1", id)
+	err = row.Scan(&task.Id, &task.AssigneeId, &task.Title, &task.Description,
+		&task.State, &task.Deadline, &task.Priority, &task.CreationDatetime, &task.GroupId)
+	if err != nil {
+		return task, err
+	}
+	return task, nil
+}
+
+func (db *DB) CreateTask(task models.Task, assigneeId int) error {
+	_, err := db.Exec("INSERT INTO task_table (assignee_id, title, description, state, deadline, priority," +
+		"creation_datetime, group_id) values ($1, $2, $3, $4, $5, $6, $7, $8)",
+		assigneeId, task.Title,
 		task.Description,
-		task.State, task.Deadline, task.Priority, task.CreationDatetime,
+		task.State, time.Time{}, task.Priority, time.Now(),
 		task.GroupId)
 
-	defer db.Close()
-
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-
+func (db *DB) DeleteTask(id int) (err error) {
+	_, err = db.GetTaskById(id)
+	if err != nil {
+		return err
+	}
+	_, err = db.Exec("DELETE FROM task_table WHERE id = $1", id)
+	if err != nil {
+		return err
+	}
+	return nil
+}

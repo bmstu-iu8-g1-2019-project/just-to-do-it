@@ -2,11 +2,11 @@ package services
 
 import (
 	"fmt"
-	"golang.org/x/crypto/bcrypt"
 	"net/smtp"
 	"time"
 
-	"dev-s/src/models"
+        "golang.org/x/crypto/bcrypt"
+	"github.com/bmstu-iu8-g1-2019-project/just-to-do-it/src/models"
 	)
 
 const (
