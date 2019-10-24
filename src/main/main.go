@@ -16,6 +16,8 @@ func main() {
     }
     envUser := &controllers.EnvironmentUser{ db}
     envTask := &controllers.EnvironmentTask{ db}
+    envGroup := &controllers.EnvironmentGroup{db}
+
 
     r := mux.NewRouter()
     r.Use(SetJSONHeader)
@@ -31,6 +33,10 @@ func main() {
     r.HandleFunc("/user/{id}", envUser.UpdateUserHandler).Methods("PUT")
     r.HandleFunc("/user/{id}", envUser.GetUserHandler).Methods("GET")
     r.HandleFunc("/user/{id}", envUser.DeleteUserHandler).Methods("DELETE")
+    r.HandleFunc("/group", envGroup.CreateGroupHandler).Methods("POST")
+    r.HandleFunc("/group/", envGroup.GetGroupHandler).Methods("GET")
+    r.HandleFunc("/group/", envGroup.UpdateGroupHandler).Methods("PUT")
+    r.HandleFunc("/group/", envGroup.DeleteGroupHandler).Methods("DELETE")
     http.ListenAndServe(":3000", r)
 }
 
