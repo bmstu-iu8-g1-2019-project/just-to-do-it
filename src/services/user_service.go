@@ -1,7 +1,7 @@
 package services
 
 import (
-	"dev-s/src/models"
+	"github.com/bmstu-iu8-g1-2019-project/just-to-do-it/src/models"
 	"fmt"
 	"golang.org/x/crypto/bcrypt"
 	"time"
