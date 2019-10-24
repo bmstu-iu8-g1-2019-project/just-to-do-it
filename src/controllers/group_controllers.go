@@ -1,11 +1,12 @@
 package controllers
 
 import (
-	"github.com/bmstu-iu8-g1-2019-project/just-to-do-it/src/models"
-	"github.com/bmstu-iu8-g1-2019-project/just-to-do-it/src/services"
 	"encoding/json"
 	"net/http"
 	"strconv"
+
+        "github.com/bmstu-iu8-g1-2019-project/just-to-do-it/src/models"
+	"github.com/bmstu-iu8-g1-2019-project/just-to-do-it/src/services"
 )
 
 type EnvironmentGroup struct {
