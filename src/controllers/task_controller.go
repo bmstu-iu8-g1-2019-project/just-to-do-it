@@ -15,20 +15,53 @@ type EnvironmentTask struct {
 	Db services.DatastoreTask
 }
 
-func(env *EnvironmentTask) GetTaskHandler(w http.ResponseWriter, r *http.Request) {
+func(env *EnvironmentTask) GetTasksHandler(w http.ResponseWriter, r *http.Request) {
+	strSlice := []string{}
+	idStr := r.URL.Query().Get("id")
+	assigneeIdStr := r.URL.Query().Get("assignee_id")
+	groupIdStr := r.URL.Query().Get("group_id")
+	strSlice = append(strSlice, idStr, assigneeIdStr, groupIdStr)
+	title := r.URL.Query().Get("title")
+	idSlice := []int{}
+
+	for _, k := range strSlice {
+		if k != "" {
+			tmp, err := strconv.Atoi(k)
+			if err != nil {
+				w.WriteHeader(http.StatusBadRequest)
+				_ = json.NewEncoder(w).Encode(err.Error())
+				return
+			}
+			idSlice = append(idSlice, tmp)
+		} else {
+			idSlice = append(idSlice, 0)
+		}
+	}
+
+	tasks, err := env.Db.GetTasks(idSlice, title)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		_ = json.NewEncoder(w).Encode(err.Error())
+		return
+	}
+	_ = json.NewEncoder(w).Encode(tasks)
+	w.WriteHeader(http.StatusOK)
+}
+
+func (env *EnvironmentTask) GetTaskHandler(w http.ResponseWriter, r *http.Request) {
 	idStr := r.URL.Query().Get("id")
 	assigneeIdStr := r.URL.Query().Get("assignee_id")
 	title := r.URL.Query().Get("title")
 	groupIdStr := r.URL.Query().Get("group_id")
 
-	id := 0
+	taskId := 0
 	if idStr != "" {
 		tmp, err := strconv.Atoi(idStr)
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
-		id = tmp
+		taskId = tmp
 	}
 
 	assigneeId := 0
@@ -36,7 +69,6 @@ func(env *EnvironmentTask) GetTaskHandler(w http.ResponseWriter, r *http.Request
 		tmp, err := strconv.Atoi(assigneeIdStr)
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
-			return
 		}
 		assigneeId = tmp
 	}
@@ -51,66 +83,60 @@ func(env *EnvironmentTask) GetTaskHandler(w http.ResponseWriter, r *http.Request
 		groupId = tmp
 	}
 
-	tasks, err := env.Db.GetTask(id, assigneeId, title, groupId)
+	task, err := env.Db.GetTask(taskId, assigneeId, title, groupId)
 	if err != nil {
 		fmt.Println(err)
 		w.WriteHeader(http.StatusBadRequest)
+		_ = json.NewEncoder(w).Encode(err.Error())
 		return
 	}
-	json.NewEncoder(w).Encode(tasks)
+	_ = json.NewEncoder(w).Encode(task)
 	w.WriteHeader(http.StatusOK)
 }
 
 func (env *EnvironmentTask)UpdateTask(w http.ResponseWriter, r *http.Request) {
-	tmp := mux.Vars(r)["id"]
-	if tmp == "" {
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
-	id, err := strconv.Atoi(tmp)
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		return
+	idStr := r.URL.Query().Get("id")
+	id := 0
+	if idStr != "" {
+		tmp, err := strconv.Atoi(idStr)
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			_ = json.NewEncoder(w).Encode(err.Error())
+			return
+		}
+		id = tmp
 	}
 
 	task := models.Task{}
-	err = json.NewDecoder(r.Body).Decode(&task)
+	err := json.NewDecoder(r.Body).Decode(&task)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
+		w.WriteHeader(http.StatusBadRequest)
+		_ = json.NewEncoder(w).Encode(err.Error())
 		return
 	}
 
 	err = env.Db.UpdateTask(task, id)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
+		_ = json.NewEncoder(w).Encode(err.Error())
 		return
 	}
 	w.WriteHeader(http.StatusOK)
 }
 
 func (env *EnvironmentTask)CreateTask(w http.ResponseWriter, r *http.Request) {
-	tmp := mux.Vars(r)["id"]
-	if tmp == "" {
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
-
-	assigneeId, err := strconv.Atoi(tmp)
+	task := models.Task{}
+	err := json.NewDecoder(r.Body).Decode(&task)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
+		_ = json.NewEncoder(w).Encode(err.Error())
 		return
 	}
 
-	task := models.Task{}
-	err = json.NewDecoder(r.Body).Decode(&task)
+	err = env.Db.CreateTask(task)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	err = env.Db.CreateTask(task, assigneeId)
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
+		_ = json.NewEncoder(w).Encode(err.Error())
 		return
 	}
 
@@ -118,22 +144,23 @@ func (env *EnvironmentTask)CreateTask(w http.ResponseWriter, r *http.Request) {
 }
 
 func (env *EnvironmentTask) DeleteTaskHandler(w http.ResponseWriter, r *http.Request) {
-	tmp := mux.Vars(r)["id"]
-	if tmp == "" {
-		w.WriteHeader(http.StatusBadRequest)
-		return
+	idStr := r.URL.Query().Get("id")
+	id := 0
+	if idStr != "" {
+		tmp, err := strconv.Atoi(idStr)
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			_ = json.NewEncoder(w).Encode(err.Error())
+			return
+		}
+		id = tmp
 	}
 
-	id, err := strconv.Atoi(tmp)
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
-
-	err = env.Db.DeleteTask(id)
+	err := env.Db.DeleteTask(id)
 	if err != nil {
 		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
+		_ = json.NewEncoder(w).Encode(err.Error())
 		return
 	}
 	w.WriteHeader(http.StatusOK)

@@ -11,7 +11,7 @@ import (
 )
 
 func main() {
-    db, err := services.NewDB(services.OpenConfigFile("config.txt"))
+    db, err := services.NewDB()
     if err != nil {
         log.Panic(err)
     }
@@ -22,10 +22,11 @@ func main() {
     r := mux.NewRouter()
     r.Use(SetJSONHeader)
 
+    r.HandleFunc("/user/tasks/", envTask.GetTasksHandler).Methods("GET")
     r.HandleFunc("/user/task/", envTask.GetTaskHandler).Methods("GET")
-    r.HandleFunc("/user/{id}/task", envTask.CreateTask).Methods("POST")
-    r.HandleFunc("/user/task/{id}", envTask.UpdateTask).Methods("PUT")
-    r.HandleFunc("/user/task/{id}", envTask.DeleteTaskHandler).Methods("DELETE")
+    r.HandleFunc("/user/task/create", envTask.CreateTask).Methods("POST")
+    r.HandleFunc("/user/task/", envTask.UpdateTask).Methods("PUT")
+    r.HandleFunc("/user/task/", envTask.DeleteTaskHandler).Methods("DELETE")
     r.HandleFunc("/login", envUser.ResponseLoginHandler).Methods("GET")
     r.HandleFunc("/register", envUser.ResponseRegisterHandler).Methods("POST")
     r.HandleFunc("/confirm", envUser.ConfirmEmailHandler).Methods("GET")
