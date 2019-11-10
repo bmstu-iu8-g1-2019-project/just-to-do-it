@@ -1,9 +1,9 @@
 package tests
 
 import (
-	"../src/controllers"
-	"../src/models"
-	"../src/services"
+	"github.com/bmstu-iu8-g1-2019-project/just-to-do-it/src/controllers"
+	"github.com/bmstu-iu8-g1-2019-project/just-to-do-it/src/models"
+	"github.com/bmstu-iu8-g1-2019-project/just-to-do-it/src/services"
 	"golang.org/x/crypto/bcrypt"
 	"gotest.tools/assert"
 	"testing"
@@ -41,8 +41,6 @@ var (
 		AccVerified: true,
 	}
 )
-
-
 
 func TestGetUser (t *testing.T) {
 	users := make([]models.User, 0)
