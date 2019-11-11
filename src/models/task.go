@@ -14,5 +14,4 @@ type Task struct {
 	Priority         int       `json:"priority"`
 	CreationDatetime time.Time `json:"creation_datetime"`
 	GroupId          int       `json:"group_id"`
-
 }
