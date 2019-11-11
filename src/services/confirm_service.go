@@ -16,11 +16,13 @@ const (
 	msgConst = "\nFrom :%s\nTo: %s\nPlease confirm your email: %s"
 )
 
+// Generate login hash
 func addressGenerator(login string) (str string) {
 	hashedLogin, _ := bcrypt.GenerateFromPassword([]byte(login), 4)
 	return string(hashedLogin)
 }
 
+// write to the auxiliary mail confirmation table
 func (db *DB) recordMailConfirm (login string) (err error){
 	secret := string(addressGenerator(login))
 	deadlineTime := time.Now().Add(20 * time.Second)
@@ -32,7 +34,7 @@ func (db *DB) recordMailConfirm (login string) (err error){
 	return nil
 }
 
-
+// update data if the transition was from the old link
 func (db *DB) confirmFieldUpdate(login string, hash string) (err error) {
 	_, err = db.Exec("UPDATE auth_confirmation SET hash = $1, deadline = $2 where login = $3", hash, time.Now().Add(2 *time.Minute), login)
 	if err != nil {

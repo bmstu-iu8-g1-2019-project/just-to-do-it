@@ -15,13 +15,16 @@ type EnvironmentUser struct {
 	Db services.DatastoreUser
 }
 
+// handle for user authorization
 func (env *EnvironmentUser) ResponseLoginHandler(w http.ResponseWriter, r *http.Request) {
 	received_object := models.User{}
+	// write from the received data to the User structure
 	err := json.NewDecoder(r.Body).Decode(&received_object)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
+	// function checks login and password in database
 	err = env.Db.Login(received_object.Login, received_object.Password)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -34,6 +37,7 @@ func (env *EnvironmentUser) ResponseLoginHandler(w http.ResponseWriter, r *http.
 	w.WriteHeader(http.StatusOK)
 }
 
+// user registration handle
 func (env *EnvironmentUser) ResponseRegisterHandler (w http.ResponseWriter, r *http.Request) {
 	obj := &models.User{}
 	err := json.NewDecoder(r.Body).Decode(obj)
@@ -45,6 +49,7 @@ func (env *EnvironmentUser) ResponseRegisterHandler (w http.ResponseWriter, r *h
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
+	//функция которая добавляет юзера и хеширует его пароль
 	err = env.Db.Register(*obj)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -57,6 +62,7 @@ func (env *EnvironmentUser) ResponseRegisterHandler (w http.ResponseWriter, r *h
 	w.WriteHeader(http.StatusOK)
 }
 
+// mail confirmation handle
 func (env *EnvironmentUser) ConfirmEmailHandler (w http.ResponseWriter, r *http.Request) {
 	hash := r.URL.Query().Get("hash")
 	err := env.Db.Confirm(hash)
@@ -67,19 +73,23 @@ func (env *EnvironmentUser) ConfirmEmailHandler (w http.ResponseWriter, r *http.
 	w.WriteHeader(http.StatusOK)
 }
 
+// user update handle
 func (env *EnvironmentUser) UpdateUserHandler (w http.ResponseWriter, r *http.Request) {
 	received_object := models.User{}
+	// get the structure from the request
 	err := json.NewDecoder(r.Body).Decode(&received_object)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
+	// get from url id
 	paramFromURL := mux.Vars(r)
 	id, err := strconv.Atoi(paramFromURL["id"])
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
 		return
 	}
+	// function updates by id and data from the request
 	err = env.Db.UpdateUser(int(id), received_object)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
