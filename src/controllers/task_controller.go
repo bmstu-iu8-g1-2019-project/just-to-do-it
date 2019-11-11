@@ -2,122 +2,122 @@ package controllers
 
 import (
 	"encoding/json"
-	"github.com/bmstu-iu8-g1-2019-project/just-to-do-it/src/models"
-	"github.com/bmstu-iu8-g1-2019-project/just-to-do-it/src/services"
-	"github.com/gorilla/mux"
+	"fmt"
 	"net/http"
 	"strconv"
+
+	"github.com/bmstu-iu8-g1-2019-project/just-to-do-it/src/models"
+	"github.com/bmstu-iu8-g1-2019-project/just-to-do-it/src/services"
 )
 
 type EnvironmentTask struct {
-	Db services.Datastore
+	Db services.DatastoreTask
 }
 
-func (env *EnvironmentTask)GetTaskTIdHandler(w http.ResponseWriter, r* http.Request) {
-	tmp := mux.Vars(r)["assignee_id"]
-	if tmp == "" {
+func(env *EnvironmentTask) GetTasksHandler(w http.ResponseWriter, r *http.Request) {
+	strSlice := []string{}
+	idStr := r.URL.Query().Get("id")
+	assigneeIdStr := r.URL.Query().Get("assignee_id")
+	groupIdStr := r.URL.Query().Get("group_id")
+	strSlice = append(strSlice, idStr, assigneeIdStr, groupIdStr)
+	title := r.URL.Query().Get("title")
+	idSlice := []int{}
+
+	for _, k := range strSlice {
+		if k != "" {
+			tmp, err := strconv.Atoi(k)
+			if err != nil {
+				w.WriteHeader(http.StatusBadRequest)
+				_ = json.NewEncoder(w).Encode(err.Error())
+				return
+			}
+			idSlice = append(idSlice, tmp)
+		} else {
+			idSlice = append(idSlice, 0)
+		}
+	}
+
+	tasks, err := env.Db.GetTasks(idSlice, title)
+	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
+		_ = json.NewEncoder(w).Encode(err.Error())
 		return
 	}
-
-	taskId, err := strconv.ParseInt(tmp, 10, 64)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	task := env.Db.GetTaskTId(taskId)
-
-	if task == nil {
-		w.WriteHeader(http.StatusNotFound)
-		return
-	}
-
-	err = json.NewEncoder(w).Encode(task)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
+	_ = json.NewEncoder(w).Encode(tasks)
 	w.WriteHeader(http.StatusOK)
-
 }
 
-func (env *EnvironmentTask)GetTasksAIdHandler(w http.ResponseWriter, r *http.Request) {
-	tmp := mux.Vars(r)["assignee_id"]
-	if tmp == "" {
+func (env *EnvironmentTask) GetTaskHandler(w http.ResponseWriter, r *http.Request) {
+	idStr := r.URL.Query().Get("id")
+	assigneeIdStr := r.URL.Query().Get("assignee_id")
+	title := r.URL.Query().Get("title")
+	groupIdStr := r.URL.Query().Get("group_id")
+
+	taskId := 0
+	if idStr != "" {
+		tmp, err := strconv.Atoi(idStr)
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+		taskId = tmp
+	}
+
+	assigneeId := 0
+	if assigneeIdStr != "" {
+		tmp, err := strconv.Atoi(assigneeIdStr)
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+		}
+		assigneeId = tmp
+	}
+
+	groupId := 0
+	if groupIdStr != "" {
+		tmp, err := strconv.Atoi(groupIdStr)
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+		groupId = tmp
+	}
+
+	task, err := env.Db.GetTask(taskId, assigneeId, title, groupId)
+	if err != nil {
+		fmt.Println(err)
 		w.WriteHeader(http.StatusBadRequest)
+		_ = json.NewEncoder(w).Encode(err.Error())
 		return
 	}
-
-	assigneeId, err := strconv.ParseInt(tmp, 10, 64)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-	}
-
-	tasks := env.Db.GetTasksAId(assigneeId)
-
-	if len(tasks) == 0 {
-		w.WriteHeader(http.StatusNotFound)
-		return
-	}
-
-	err = json.NewEncoder(w).Encode(tasks)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	w.WriteHeader(http.StatusOK)
-
-}
-
-func (env *EnvironmentTask)GetTasksGIdHandler(w http.ResponseWriter, r *http.Request) {
-	tmp := mux.Vars(r)["assignee_id"]
-	if tmp == "" {
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
-
-	groupId, err := strconv.ParseInt(tmp, 10, 64)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	tasks := env.Db.GetTasksGId(groupId)
-
-	if len(tasks) == 0 {
-		w.WriteHeader(http.StatusNotFound)
-		return
-	}
-
-	err = json.NewEncoder(w).Encode(tasks)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
+	_ = json.NewEncoder(w).Encode(task)
 	w.WriteHeader(http.StatusOK)
 }
 
 func (env *EnvironmentTask)UpdateTask(w http.ResponseWriter, r *http.Request) {
-	task := models.Task{}
-	err := json.NewDecoder(r.Body).Decode(task)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		return
+	idStr := r.URL.Query().Get("id")
+	id := 0
+	if idStr != "" {
+		tmp, err := strconv.Atoi(idStr)
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			_ = json.NewEncoder(w).Encode(err.Error())
+			return
+		}
+		id = tmp
 	}
 
-	err = env.Db.UpdateTask(task)
+	task := models.Task{}
+	err := json.NewDecoder(r.Body).Decode(&task)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
+		_ = json.NewEncoder(w).Encode(err.Error())
 		return
 	}
 
-	err = json.NewEncoder(w).Encode(task)
+	err = env.Db.UpdateTask(task, id)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
+		w.WriteHeader(http.StatusBadRequest)
+		_ = json.NewEncoder(w).Encode(err.Error())
 		return
 	}
 	w.WriteHeader(http.StatusOK)
@@ -125,21 +125,41 @@ func (env *EnvironmentTask)UpdateTask(w http.ResponseWriter, r *http.Request) {
 
 func (env *EnvironmentTask)CreateTask(w http.ResponseWriter, r *http.Request) {
 	task := models.Task{}
-	err := json.NewDecoder(r.Body).Decode(task)
+	err := json.NewDecoder(r.Body).Decode(&task)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
+		w.WriteHeader(http.StatusBadRequest)
+		_ = json.NewEncoder(w).Encode(err.Error())
 		return
 	}
 
 	err = env.Db.CreateTask(task)
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
+		w.WriteHeader(http.StatusInternalServerError)
+		_ = json.NewEncoder(w).Encode(err.Error())
 		return
 	}
 
-	err = json.NewEncoder(w).Encode(task)
+	w.WriteHeader(http.StatusOK)
+}
+
+func (env *EnvironmentTask) DeleteTaskHandler(w http.ResponseWriter, r *http.Request) {
+	idStr := r.URL.Query().Get("id")
+	id := 0
+	if idStr != "" {
+		tmp, err := strconv.Atoi(idStr)
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			_ = json.NewEncoder(w).Encode(err.Error())
+			return
+		}
+		id = tmp
+	}
+
+	err := env.Db.DeleteTask(id)
 	if err != nil {
+		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
+		_ = json.NewEncoder(w).Encode(err.Error())
 		return
 	}
 	w.WriteHeader(http.StatusOK)

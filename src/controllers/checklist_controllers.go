@@ -1,13 +1,12 @@
 package controllers
 
 import (
-        "net/http"
-	"strconv"
-        "encoding/json"
-
 	"github.com/bmstu-iu8-g1-2019-project/just-to-do-it/src/models"
 	"github.com/bmstu-iu8-g1-2019-project/just-to-do-it/src/services"
+	"encoding/json"
 	"github.com/gorilla/mux"
+	"net/http"
+	"strconv"
 )
 
 type EnvironmentChecklist struct {

@@ -1,12 +1,12 @@
 CREATE DATABASE JustToDoIt;
-CREATE TABLE task (
-    id int SERIAL PRIMARY KEY,
+CREATE TABLE task_table (
+    id SERIAL PRIMARY KEY UNIQUE,
     assignee_id int,
-    title text(128),
-    description string,
+    title varchar(128),
+    description varchar(128),
     state varchar(32),
-    deadline time,
+    deadline TIMESTAMP WITH TIME ZONE,
     priority int,
-    creation_datetime timestamp,
+    creation_datetime TIMESTAMP WITH TIME ZONE,
     group_id int
 )
