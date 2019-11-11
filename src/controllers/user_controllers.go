@@ -8,8 +8,8 @@ import (
 
 	"golang.org/x/crypto/bcrypt"
 	"github.com/gorilla/mux"
-	"dev-s/src/services"
-	"dev-s/src/models"
+	"github.com/bmstu-iu8-g1-2019-project/just-to-do-it/src/services"
+	"github.com/bmstu-iu8-g1-2019-project/just-to-do-it/src/models"
 )
 
 type EnvironmentUser struct {
