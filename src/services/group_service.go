@@ -9,6 +9,7 @@ type DatastoreGroup interface {
 	DeleteGroup(int) (error)
 }
 
+//здесь вроде все примитивно, просто не знаю что еще можно накрутить по функционалу
 func (db *DB) CreateGroup (group models.Group) (err error) {
 	_, err = db.Exec("INSERT INTO group_table (title, description) values ($1, $2)",
 		                    group.Title, group.Description)

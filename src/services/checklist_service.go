@@ -12,6 +12,7 @@ type DatastoreChecklist interface {
 	DeleteChecklist(int) error
 }
 
+//аналогично группам примитивный функционал
 func(db *DB) CreateChecklist(checklist models.Checklist) error {
 	_, err := db.Exec("INSERT INTO checklists_table (task_id, name, state)" +
 		"values ($1, $2, $3)", checklist.TaskId, checklist.Name, checklist.State)

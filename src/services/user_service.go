@@ -17,6 +17,8 @@ type DatastoreUser interface {
 	DeleteUser(int) (error)
 }
 
+// The function checks the username and password that comes
+// from the request with the username and password that lies in the database
 func (db *DB)Login(login string, password string) (err error) {
 	var obj models.User
 	row := db.QueryRow("SELECT * FROM user_table WHERE login = $1", login)
@@ -30,7 +32,9 @@ func (db *DB)Login(login string, password string) (err error) {
 	return nil
 }
 
+// user registration (User structure comes)
 func (db *DB) Register(obj models.User) (err error) {
+	// password hashing
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(obj.Password), 8)
 
 	_, err = db.Exec("INSERT INTO user_table (email, login, fullname, password, acc_verified) values ($1, $2, $3, $4, $5)",
@@ -38,10 +42,13 @@ func (db *DB) Register(obj models.User) (err error) {
 	if err != nil {
 		return err
 	}
+	//write to the auxiliary table that stores the username its hash
+	// and the expiration of the link to confirm mail
 	err = db.recordMailConfirm(obj.Login)
 	if err != nil {
 		return err
 	}
+	// send a message to the user's mail with such a login
 	err = db.sendMail(obj.Login)
 	if err != nil {
 		return err
@@ -49,6 +56,9 @@ func (db *DB) Register(obj models.User) (err error) {
 	return nil
 }
 
+// function that when clicking on the old link generates a new hash and resends the message to the mail
+// else
+// assigns "true" in the "acc_verified" field of the usera table and removes the entry from the auxiliary database
 func (db *DB) Confirm(hash string) (err error) {
 	var conf models.AuthConfirmation
 	row := db.QueryRow("SELECT * FROM auth_confirmation WHERE hash = $1", hash)
@@ -82,6 +92,7 @@ func (db *DB) Confirm(hash string) (err error) {
 	}
 }
 
+// update the user according to the parameters from the new request
 func (db *DB) UpdateUser (id int, updateUser models.User) (err error) {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(updateUser.Password), 8)
 	_, err = db.Exec("UPDATE user_table SET email = $1, login = $2, fullname = $3," +
@@ -93,6 +104,7 @@ func (db *DB) UpdateUser (id int, updateUser models.User) (err error) {
 	return nil
 }
 
+// get the user structure by id
 func (db *DB) GetUser (id int) (user models.User, err error) {
 	row := db.QueryRow("SELECT * FROM user_table WHERE id = $1", id)
 	err = row.Scan(&user.Id, &user.Email, &user.Login, &user.Fullname, &user.Password, &user.AccVerified)
@@ -102,6 +114,7 @@ func (db *DB) GetUser (id int) (user models.User, err error) {
 	return user, nil
 }
 
+// delete user by id
 func (db *DB) DeleteUser (id int) (err error) {
 	user, err := db.GetUser(id)
 	if err != nil {

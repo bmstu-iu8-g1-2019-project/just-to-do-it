@@ -14,7 +14,9 @@ type EnvironmentTask struct {
 	Db services.DatastoreTask
 }
 
+// handle for getting tasks
 func(env *EnvironmentTask) GetTasksHandler(w http.ResponseWriter, r *http.Request) {
+	// get data from url
 	strSlice := []string{}
 	idStr := r.URL.Query().Get("id")
 	assigneeIdStr := r.URL.Query().Get("assignee_id")
@@ -23,6 +25,7 @@ func(env *EnvironmentTask) GetTasksHandler(w http.ResponseWriter, r *http.Reques
 	title := r.URL.Query().Get("title")
 	idSlice := []int{}
 
+	// write to array
 	for _, k := range strSlice {
 		if k != "" {
 			tmp, err := strconv.Atoi(k)
@@ -37,6 +40,7 @@ func(env *EnvironmentTask) GetTasksHandler(w http.ResponseWriter, r *http.Reques
 		}
 	}
 
+	// function returns an array of tasks according to data from url
 	tasks, err := env.Db.GetTasks(idSlice, title)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
@@ -47,6 +51,8 @@ func(env *EnvironmentTask) GetTasksHandler(w http.ResponseWriter, r *http.Reques
 	w.WriteHeader(http.StatusOK)
 }
 
+// same as ^
+// but for one task
 func (env *EnvironmentTask) GetTaskHandler(w http.ResponseWriter, r *http.Request) {
 	idStr := r.URL.Query().Get("id")
 	assigneeIdStr := r.URL.Query().Get("assignee_id")
@@ -93,7 +99,9 @@ func (env *EnvironmentTask) GetTaskHandler(w http.ResponseWriter, r *http.Reques
 	w.WriteHeader(http.StatusOK)
 }
 
+// task update handler
 func (env *EnvironmentTask)UpdateTask(w http.ResponseWriter, r *http.Request) {
+	// get id from url
 	idStr := r.URL.Query().Get("id")
 	id := 0
 	if idStr != "" {
@@ -107,6 +115,7 @@ func (env *EnvironmentTask)UpdateTask(w http.ResponseWriter, r *http.Request) {
 	}
 
 	task := models.Task{}
+	// get data from the request
 	err := json.NewDecoder(r.Body).Decode(&task)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
@@ -114,6 +123,7 @@ func (env *EnvironmentTask)UpdateTask(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	//update
 	err = env.Db.UpdateTask(task, id)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)

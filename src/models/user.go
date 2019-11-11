@@ -11,7 +11,7 @@ type User struct {
 	AccVerified bool  `json:"acc_verified"`
 }
 
-
+// helper structure for mail confirmation
 type AuthConfirmation struct {
 	Login string       `json:"login"`
 	Hash string        `json:"hash"`

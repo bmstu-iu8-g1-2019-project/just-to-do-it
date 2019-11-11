@@ -17,7 +17,11 @@ type DatastoreTask interface  {
 	DeleteTask(int) error
 }
 
+// receive data on any of the input parameters (id, assignee_id, title, group_id)
+// returns one object of type Task
 func(db* DB) GetTask(id int, assigneeId int, title string, groupId int) (task models.Task ,err error) {
+	// map in which values from the request are put,
+	// depending on whether they were in the url or not
 	queryMap := make(map[string]interface{})
 	if id != 0 {
 		queryMap["id"] = id
@@ -33,6 +37,7 @@ func(db* DB) GetTask(id int, assigneeId int, title string, groupId int) (task mo
 	}
 	query := "SELECT id, assignee_id, title, description, state, deadline, priority, creation_datetime, group_id FROM task_table WHERE "
 
+	// generate a string for sql query
 	var values []interface{}
 	var where []string
 	i := 1
@@ -58,6 +63,8 @@ func(db* DB) GetTask(id int, assigneeId int, title string, groupId int) (task mo
 	return task, nil
 }
 
+// input we get an array of values from url
+// returns an array of objects of type Task
 func(db* DB) GetTasks(idSlice []int, title string) (tasks []models.Task ,err error) {
 	queryMap := make(map[string]interface{})
 	if idSlice[0] != 0 {
@@ -105,6 +112,7 @@ func(db* DB) GetTasks(idSlice []int, title string) (tasks []models.Task ,err err
 	return tasks, nil
 }
 
+// update task by id and parameters from the request
 func (db *DB) UpdateTask(task models.Task, Id int) error {
 	_, err := db.Exec("UPDATE task_table SET assignee_id = $1, title = $2, description = $3, state = $4, deadline = $5," +
 		" priority = $6, creation_datetime = $7, group_id = $8 where id = $9",
@@ -117,6 +125,8 @@ func (db *DB) UpdateTask(task models.Task, Id int) error {
 	return nil
 }
 
+// get task by id
+// хз зачем, но зато в delete испольозвал)
 func (db *DB) GetTaskById (id int) (task models.Task, err error) {
 	row := db.QueryRow("SELECT * FROM task_table WHERE id = $1", id)
 	err = row.Scan(&task.Id, &task.AssigneeId, &task.Title, &task.Description,
@@ -127,6 +137,7 @@ func (db *DB) GetTaskById (id int) (task models.Task, err error) {
 	return task, nil
 }
 
+//create task
 func (db *DB) CreateTask(task models.Task) error {
 	_, err := db.Exec("INSERT INTO task_table (assignee_id, title, description, state, deadline, priority," +
 		"creation_datetime, group_id) values ($1, $2, $3, $4, $5, $6, $7, $8)",
@@ -141,6 +152,7 @@ func (db *DB) CreateTask(task models.Task) error {
 	return nil
 }
 
+//delte task
 func (db *DB) DeleteTask(id int) (err error) {
 	_, err = db.GetTaskById(id)
 	if err != nil {
