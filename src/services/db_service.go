@@ -50,7 +50,10 @@ func Setup(filename string, db *DB) {
 	}
 
 	command := string(bs)
-	db.Exec(command)
+	_, err = db.Exec(command)
+	if err != nil {
+		fmt.Println("Command error")
+	}
 }
 
 func NewMockGetDB(users []models.User) (*DB, error) {

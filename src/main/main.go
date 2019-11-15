@@ -1,9 +1,9 @@
 package main
 
 import (
-	"../services"
 	"fmt"
 	"github.com/bmstu-iu8-g1-2019-project/just-to-do-it/src/controllers"
+	"github.com/bmstu-iu8-g1-2019-project/just-to-do-it/src/services"
 	"github.com/gorilla/mux"
 	_ "github.com/lib/pq"
 	"log"
@@ -19,12 +19,11 @@ var (
 
 func init() {
 	fmt.Println("Connecting to database server...")
-	config := os.Args[1]
 
-	fmt.Println("Current config: ", config)
-
-	db, _ := services.NewDB(config)
-
+	db, err := services.NewDB(os.Args[1])
+	if err != nil {
+		fmt.Println("Database opening error")
+	}
 	services.Setup(FileName, db)
 
 	fmt.Println("Successfuly connection")

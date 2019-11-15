@@ -3,14 +3,14 @@ services:
   database:
     build: src/db/
     ports:
-      - 5432:5432
+      - 5555:5555
 
   server:
     build: ./
     network_mode: host
     ports:
       - 5000:80
-      - 5432:5432
+      - 5000:5000
 
     depends_on:
       - database

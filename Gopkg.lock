@@ -20,10 +20,10 @@
   version = "v1.7.3"
 
 [[projects]]
-  branch = "master"
   name = "github.com/lib/pq"
   packages = [".","oid","scram"]
-  revision = "f91d3411e481ed313eeab65ebfe9076466c39d01"
+  revision = "3427c32cb71afc948325f299f040e53c1dd78979"
+  version = "v1.2.0"
 
 [[projects]]
   name = "github.com/pkg/errors"
@@ -46,6 +46,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "374d715aa67eb4c493bab8bec1edf2e327a210eb0c5bdb598d2fa1b2004caa98"
+  inputs-digest = "c2b23b1893bb61d819a6e6d4e84188aff5bb54fa43ada1a11ceadf7e0a97e24f"
   solver-name = "gps-cdcl"
   solver-version = 1
