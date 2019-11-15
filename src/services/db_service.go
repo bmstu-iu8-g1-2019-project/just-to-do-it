@@ -3,7 +3,6 @@ package services
 import (
 	"database/sql"
 	"fmt"
-	"io"
 	"os"
 	"regexp"
 
@@ -29,23 +28,29 @@ func NewDB(dbSourceName string) (*DB, error) {
 	return &DB{db}, nil
 }
 
-func OpenConfigFile(filename string) (config string) {
+func Setup(filename string, db *DB) {
 	file, err := os.Open(filename)
 	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
+		fmt.Println("Setupfile opening error: ", err)
+		return
 	}
 	defer file.Close()
 
-	data := make([]byte, 64)
-	for {
-		n, err := file.Read(data)
-		if err == io.EOF {
-			break
-		}
-		config += string(data[:n])
+	stat, err := file.Stat()
+	if err != nil {
+		fmt.Println("Error after opening setupfile: ", err)
+		return
 	}
-	return config
+
+	bs := make([]byte, stat.Size())
+	_, err = file.Read(bs)
+	if err != nil {
+		fmt.Println("Error after opening setupfile: ", err)
+		panic(err)
+	}
+
+	command := string(bs)
+	db.Exec(command)
 }
 
 func NewMockGetDB(users []models.User) (*DB, error) {
