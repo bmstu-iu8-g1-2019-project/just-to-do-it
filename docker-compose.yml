@@ -1,22 +1,16 @@
 version: '3'
 services:
-  db:
-    image: postgres:latest
-    environment:
-      POSTGRES_DB: db
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: password
+  database:
+    build: src/db/
     ports:
-      - 3030:3030
-  app:
-    build: .
-    working_dir: /go/src/github.com/bmstu-iu8-g1-2019-project/just-to-do-it
-    command: go run ./src/main/main.go -http.addr :8080 -db.host db -db.port 3030 -db.user user -db.password password -db.database db
-    volumes:
-      - .:/go/src/github.com/bmstu-iu8-g1-2019-project/just-to-do-it/src
+      - 5432:5432
+
+  server:
+    build: ./
+    network_mode: host
     ports:
-      - "8080:8080"
+      - 5000:80
+      - 5432:5432
+
     depends_on:
-      - db
-    links:
-      - db
+      - database

@@ -14,17 +14,18 @@ RUN curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
 USER root
 
 EXPOSE 5000
+EXPOSE 8080
 
 ENV GO_DEEP "psql -U docker -h 127.0.0.1 -d todoapp"
 
 WORKDIR $GOPATH/src/github.com/bmstu-iu8-g1-2019-project/just-to-do-it
-ADD . $GOPATH/src/github.com/bmstu-iu8-g1-2019-project/just-to-do-it
+ADD ./ $GOPATH/src/github.com/bmstu-iu8-g1-2019-project/just-to-do-it
+
+RUN tree -L 4 ./
 
 RUN chmod +x ./scripts/*
-
 RUN ./scripts/build.sh
 
-RUN tree -L 3 ./
 
 RUN md5sum server.app
 
