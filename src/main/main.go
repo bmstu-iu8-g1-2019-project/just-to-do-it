@@ -20,7 +20,7 @@ var (
 func init() {
 	fmt.Println("Connecting to database server...")
 
-	db, err := services.NewDB(os.Args[1])
+	db, err := services.NewDB(os.Args[0])
 	if err != nil {
 		fmt.Println("Database opening error")
 	}
@@ -48,7 +48,7 @@ func init() {
 }
 
 func main() {
-	log.Fatal(http.ListenAndServe(":5000", Router))
+	log.Fatal(http.ListenAndServe(":5555", Router))
 }
 
 func SetJSONHeader(h http.Handler) http.Handler {
