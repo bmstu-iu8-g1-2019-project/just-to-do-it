@@ -142,13 +142,13 @@ func (env *EnvironmentTask)CreateTask(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = env.Db.CreateTask(task)
+	task, err = env.Db.CreateTask(task)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		_ = json.NewEncoder(w).Encode(err.Error())
 		return
 	}
-
+	_  = json.NewEncoder(w).Encode(task)
 	w.WriteHeader(http.StatusOK)
 }
 
@@ -174,3 +174,4 @@ func (env *EnvironmentTask) DeleteTaskHandler(w http.ResponseWriter, r *http.Req
 	}
 	w.WriteHeader(http.StatusOK)
 }
+

@@ -9,51 +9,70 @@ import (
 )
 
 type DatastoreUser interface {
-	Login(string, string) (error)
-	Register(models.User) (error)
-	Confirm(string) (error)
-	UpdateUser(int, models.User) (error)
+        Login(string, string) (models.User, error)
+	Register(models.User) (models.User, error)
+	Confirm(string) error
+	UpdateUser(int, models.User) error
 	GetUser(int) (models.User, error)
-	DeleteUser(int) (error)
+	DeleteUser(int) error
 }
 
 // The function checks the username and password that comes
 // from the request with the username and password that lies in the database
-func (db *DB)Login(login string, password string) (err error) {
-	var obj models.User
+func (db *DB)Login(login string, password string) (user models.User, err error) {
 	row := db.QueryRow("SELECT * FROM user_table WHERE login = $1", login)
-	err = row.Scan(&obj.Id, &obj.Email, &obj.Login, &obj.Fullname, &obj.Password, &obj.AccVerified)
+	err = row.Scan(&user.Id, &user.Email, &user.Login, &user.Fullname, &user.Password, &user.AccVerified)
 	if err != nil {
-		return err
+		return user, err
 	}
-	if err = bcrypt.CompareHashAndPassword([]byte(obj.Password), []byte(password)); err != nil {
-		return err
+	if err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)); err != nil {
+		return user, err
 	}
-	return nil
+	return user,nil
 }
+
 
 // user registration (User structure comes)
 func (db *DB) Register(obj models.User) (err error) {
 	// password hashing
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(obj.Password), 8)
 
-	_, err = db.Exec("INSERT INTO user_table (email, login, fullname, password, acc_verified) values ($1, $2, $3, $4, $5)",
-		obj.Email, obj.Login, obj.Fullname, string(hashedPassword), obj.AccVerified)
-	if err != nil {
-		return err
+	if obj.Fullname == "" {
+		obj.Fullname = obj.Login
 	}
+	query := "INSERT INTO user_table (email, login, fullname, password, acc_verified)" +
+		     "values ('%s', '%s', '%s', '%s', false)  RETURNING id"
+	query = fmt.Sprintf(query, obj.Email, obj.Login, obj.Fullname, hashedPassword)
+
+	err = db.QueryRow(query).Scan(&obj.Id)
+	if err != nil {
+		return obj, nil
+	}
+	//result, err := db.Exec("INSERT INTO user_table (email, login, fullname, password, acc_verified) values ($1, $2, $3, $4, $5)  RETURNING id",
+	//	obj.Email, obj.Login, obj.Fullname, string(hashedPassword), false)
+	//if err != nil {
+	//	return obj, err
+	//}
+	//id, err := result.LastInsertId()
+	//if err != nil {
+	//	fmt.Println(err)
+	//	fmt.Println(id)
+	//}
+	//obj.Id = int(id)
+
+
 	//write to the auxiliary table that stores the username its hash
 	// and the expiration of the link to confirm mail
 	err = db.recordMailConfirm(obj.Login)
 	if err != nil {
-		return err
+		return obj, err
 	}
 	// send a message to the user's mail with such a login
 	err = db.sendMail(obj.Login)
 	if err != nil {
-		return err
+		return obj, err
 	}
-	return nil
+	return obj, err
 }
 
 // function that when clicking on the old link generates a new hash and resends the message to the mail

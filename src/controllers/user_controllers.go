@@ -25,7 +25,7 @@ func (env *EnvironmentUser) ResponseLoginHandler(w http.ResponseWriter, r *http.
 		return
 	}
 	// function checks login and password in database
-	err = env.Db.Login(received_object.Login, received_object.Password)
+	user, err := env.Db.Login(received_object.Login, received_object.Password)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			w.WriteHeader(http.StatusNotFound)
@@ -34,6 +34,8 @@ func (env *EnvironmentUser) ResponseLoginHandler(w http.ResponseWriter, r *http.
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
+	user.Password = ""
+	_ = json.NewEncoder(w).Encode(user)
 	w.WriteHeader(http.StatusOK)
 }
 
@@ -49,16 +51,15 @@ func (env *EnvironmentUser) ResponseRegisterHandler (w http.ResponseWriter, r *h
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	//функция которая добавляет юзера и хеширует его пароль
-	err = env.Db.Register(*obj)
+	//function that detects the user and hashes his password
+	user := models.User{}
+	user, err = env.Db.Register(*obj)
 	if err != nil {
-		if err == sql.ErrNoRows {
-			w.WriteHeader(http.StatusUnauthorized)
-			return
-		}
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
+	user.Password = ""
+	_ = json.NewEncoder(w).Encode(user)
 	w.WriteHeader(http.StatusOK)
 }
 
