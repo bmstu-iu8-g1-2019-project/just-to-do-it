@@ -4,8 +4,8 @@ import (
     "log"
     "net/http"
 
-    "dev-s/src/controllers"
-    "dev-s/src/services"
+    "github.com/bmstu-iu8-g1-2019-project/just-to-do-it/src/controllers"
+    "github.com/bmstu-iu8-g1-2019-project/just-to-do-it/src/services"
     "github.com/gorilla/mux"
     _ "github.com/lib/pq"
 )
@@ -29,11 +29,11 @@ func main() {
     r.HandleFunc("/user/{id}", envUser.GetUserHandler).Methods("GET")
     r.HandleFunc("/user/{id}", envUser.DeleteUserHandler).Methods("DELETE")
     r.HandleFunc("/confirm", envUser.ConfirmEmailHandler).Methods("GET")
-    r.HandleFunc("/user/tasks/", envTask.GetTasksHandler).Methods("GET")
-    r.HandleFunc("/user/task/", envTask.GetTaskHandler).Methods("GET")
-    r.HandleFunc("/user/task/create", envTask.CreateTask).Methods("POST")
-    r.HandleFunc("/user/task/", envTask.UpdateTask).Methods("PUT")
-    r.HandleFunc("/user/task/", envTask.DeleteTaskHandler).Methods("DELETE")
+    r.HandleFunc("/tasks/", envTask.GetTasksHandler).Methods("GET")
+    r.HandleFunc("/task/", envTask.GetTaskHandler).Methods("GET")
+    r.HandleFunc("/task/create", envTask.CreateTask).Methods("POST")
+    r.HandleFunc("/task/", envTask.UpdateTask).Methods("PUT")
+    r.HandleFunc("/task/", envTask.DeleteTaskHandler).Methods("DELETE")
     r.HandleFunc("/group", envGroup.CreateGroupHandler).Methods("POST")
     r.HandleFunc("/group/", envGroup.GetGroupHandler).Methods("GET")
     r.HandleFunc("/group/", envGroup.UpdateGroupHandler).Methods("PUT")

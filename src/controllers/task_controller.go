@@ -17,13 +17,13 @@ type EnvironmentTask struct {
 // handle for getting tasks
 func(env *EnvironmentTask) GetTasksHandler(w http.ResponseWriter, r *http.Request) {
 	// get data from url
-	strSlice := []string{}
+	var strSlice []string
 	idStr := r.URL.Query().Get("id")
 	assigneeIdStr := r.URL.Query().Get("assignee_id")
 	groupIdStr := r.URL.Query().Get("group_id")
 	strSlice = append(strSlice, idStr, assigneeIdStr, groupIdStr)
 	title := r.URL.Query().Get("title")
-	idSlice := []int{}
+	var idSlice []int
 
 	// write to array
 	for _, k := range strSlice {

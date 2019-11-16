@@ -56,7 +56,7 @@ func(db* DB) GetTask(id int, assigneeId int, title string, groupId int) (task mo
 
 	err = row.Scan(&task.Id, &task.AssigneeId, &task.Title, &task.Description,
 		&task.State, &task.Deadline, &task.Priority, &task.CreationDatetime,
-		&task.GroupId)
+		&task.GroupId, &task.Tag)
 	if err != nil {
 		return task, err
 	}
@@ -80,7 +80,7 @@ func(db* DB) GetTasks(idSlice []int, title string) (tasks []models.Task ,err err
 	if title != "" {
 		queryMap["title"] = title
 	}
-	query := "SELECT id, assignee_id, title, description, state, deadline, priority, creation_datetime, group_id, tags FROM task_table_test WHERE "
+	query := "SELECT id, assignee_id, title, description, state, deadline, priority, creation_datetime, group_id FROM task_table_test WHERE "
 
 	var values []interface{}
 	var where []string
@@ -103,7 +103,7 @@ func(db* DB) GetTasks(idSlice []int, title string) (tasks []models.Task ,err err
 		task := &models.Task{}
 		err = rows.Scan(&task.Id, &task.AssigneeId, &task.Title, &task.Description,
 			&task.State, &task.Deadline, &task.Priority, &task.CreationDatetime,
-			&task.GroupId, &task.Tag)
+			&task.GroupId)
 		if err != nil {
 			return tasks, err
 		}

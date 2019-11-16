@@ -33,7 +33,7 @@ func (db *DB)Login(login string, password string) (user models.User, err error) 
 
 
 // user registration (User structure comes)
-func (db *DB) Register(obj models.User) (err error) {
+func (db *DB) Register(obj models.User) (models.User, error) {
 	// password hashing
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(obj.Password), 8)
 
