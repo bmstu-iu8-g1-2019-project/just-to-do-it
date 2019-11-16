@@ -48,7 +48,7 @@ func init() {
 }
 
 func main() {
-	log.Fatal(http.ListenAndServe(":5555", Router))
+	log.Fatal(http.ListenAndServe(":80", Router))
 }
 
 func SetJSONHeader(h http.Handler) http.Handler {

@@ -13,8 +13,8 @@ RUN curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
 
 USER root
 
-EXPOSE 5000
-EXPOSE 8080
+EXPOSE 5432
+EXPOSE 80
 
 ENV GO_DEEP "psql -U docker -h 127.0.0.1 -d todoapp"
 

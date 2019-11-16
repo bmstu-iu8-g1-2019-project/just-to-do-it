@@ -28,6 +28,6 @@ RUN echo "shared_buffers = 256MB" >> /etc/postgresql/$PGVER/main/postgresql.conf
 RUN echo "autovacuum = off" >> /etc/postgresql/$PGVER/main/postgresql.conf
 RUN echo "max_connections = 100" >> /etc/postgresql/$PGVER/main/postgresql.conf
 
-EXPOSE 5555
+EXPOSE 5432
 
 VOLUME  ["/etc/postgresql", "/var/log/postgresql", "/var/lib/postgresql"]

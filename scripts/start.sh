@@ -12,4 +12,4 @@ fi
 
 #service postgresql start
 
-./${app} postgres://docker:docker@localhost:5555/todoapp
+./${app} postgres://docker:docker@localhost:5432/todoapp
