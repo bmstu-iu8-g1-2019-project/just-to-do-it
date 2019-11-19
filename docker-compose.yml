@@ -1,16 +1,13 @@
 version: '3'
 services:
   database:
-    build: src/db/
+    build:
+      ./src/db/
     ports:
-      - 5432:5432
-
+        - "5432:5432"
   server:
     build: ./
     network_mode: host
     ports:
-      - 80:80
-      - 5432:5432
-
-    depends_on:
-      - database
+      - "80:80"
+      - "5432:5432"

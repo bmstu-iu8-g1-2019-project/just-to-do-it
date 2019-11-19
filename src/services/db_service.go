@@ -28,6 +28,7 @@ func NewDB(dbSourceName string) (*DB, error) {
 	return &DB{db}, nil
 }
 
+// DO not working
 func Setup(filename string, db *DB) {
 	file, err := os.Open(filename)
 	if err != nil {

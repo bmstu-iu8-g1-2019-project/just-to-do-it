@@ -20,11 +20,13 @@ var (
 func init() {
 	fmt.Println("Connecting to database server...")
 
-	db, err := services.NewDB(os.Args[0])
+	fmt.Println(os.Args[1])
+	db, err := services.NewDB(os.Args[1])
 	if err != nil {
 		fmt.Println("Database opening error")
 	}
-	services.Setup(FileName, db)
+
+	//services.Setup(FileName, db)
 
 	fmt.Println("Successfuly connection")
 

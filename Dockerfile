@@ -26,7 +26,6 @@ RUN tree -L 4 ./
 RUN chmod +x ./scripts/*
 RUN ./scripts/build.sh
 
-
 RUN md5sum server.app
 
 ENTRYPOINT ["./scripts/start.sh"]

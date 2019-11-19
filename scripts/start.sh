@@ -10,6 +10,4 @@ fi
 
 [[ ! -f ${app} ]] && go build -o ${app} ${main}
 
-#service postgresql start
-
 ./${app} postgres://docker:docker@localhost:5432/todoapp
