@@ -1,13 +1,21 @@
 version: '3'
 services:
-  database:
-    build:
-      ./src/db/
+  db:
+    image: postgres
+    environment:
+      POSTGRES_DB: todoapp
+      POSTGRES_USER: docker
+      POSTGRES_PASSWORD: docker
     ports:
-        - "5432:5432"
-  server:
-    build: ./
-    network_mode: host
-    ports:
-      - "80:80"
       - "5432:5432"
+  app:
+    build: .
+    volumes:
+      - .:/go/src/github.com/bmstu-iu8-g1-2019-project/just-to-do-it
+    command: ["./wait-for-it.sh", "db:5432", "--", "go", "run", "src/main/main.go"]
+    ports:
+      - "80:8080"
+    depends_on:
+      - db
+    links:
+      - db

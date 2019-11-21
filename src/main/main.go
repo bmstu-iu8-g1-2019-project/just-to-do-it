@@ -8,49 +8,42 @@ import (
 	_ "github.com/lib/pq"
 	"log"
 	"net/http"
-	"os"
 )
 
 var (
 	FileName = "src/db/database.sql"
-
-	Router = mux.NewRouter()
 )
 
 func init() {
+
 	fmt.Println("Connecting to database server...")
 
-	fmt.Println(os.Args[1])
-	db, err := services.NewDB(os.Args[1])
+	db, err := services.NewDB("postgres://docker:docker@localhost:5432/todoapp")
 	if err != nil {
-		fmt.Println("Database opening error")
+		fmt.Println(err)
 	}
-
-	//services.Setup(FileName, db)
-
-	fmt.Println("Successfuly connection")
-
 	envUser := &controllers.EnvironmentUser{ db}
 	envTask := &controllers.EnvironmentTask{ db}
 
+	r := mux.NewRouter()
+	r.Use(SetJSONHeader)
 
-	Router.Use(SetJSONHeader)
-
-	Router.HandleFunc("/user/task/{id}", envTask.GetTaskTIdHandler).Methods("GET")
-	Router.HandleFunc("/user/task/{assignee_id}", envTask.GetTasksAIdHandler).Methods("GET")
-	Router.HandleFunc("/user/task/{group_id}", envTask.GetTasksGIdHandler).Methods("GET")
-	Router.HandleFunc("/user/task", envTask.CreateTask).Methods("POST")
-	Router.HandleFunc("/user/task/{id}", envTask.UpdateTask).Methods("PUT")
-	Router.HandleFunc("/login", envUser.ResponseLoginHandler).Methods("GET")
-	Router.HandleFunc("/register", envUser.ResponseRegisterHandler).Methods("POST")
-	Router.HandleFunc("/confirm", envUser.ConfirmEmailHandler).Methods("GET")
-	Router.HandleFunc("/user/{id}", envUser.UpdateUserHandler).Methods("PUT")
-	Router.HandleFunc("/user/{id}", envUser.GetUserHandler).Methods("GET")
-	Router.HandleFunc("/user/{id}", envUser.DeleteUserHandler).Methods("DELETE")
+	r.HandleFunc("/user/task/{id}", envTask.GetTaskTIdHandler).Methods("GET")
+	r.HandleFunc("/user/task/{assignee_id}", envTask.GetTasksAIdHandler).Methods("GET")
+	r.HandleFunc("/user/task/{group_id}", envTask.GetTasksGIdHandler).Methods("GET")
+	r.HandleFunc("/user/task", envTask.CreateTask).Methods("POST")
+	r.HandleFunc("/user/task/{id}", envTask.UpdateTask).Methods("PUT")
+	r.HandleFunc("/login", envUser.ResponseLoginHandler).Methods("GET")
+	r.HandleFunc("/register", envUser.ResponseRegisterHandler).Methods("POST")
+	r.HandleFunc("/confirm", envUser.ConfirmEmailHandler).Methods("GET")
+	r.HandleFunc("/user/{id}", envUser.UpdateUserHandler).Methods("PUT")
+	r.HandleFunc("/user/{id}", envUser.GetUserHandler).Methods("GET")
+	r.HandleFunc("/user/{id}", envUser.DeleteUserHandler).Methods("DELETE")
 }
 
 func main() {
-	log.Fatal(http.ListenAndServe(":80", Router))
+
+	log.Fatal(http.ListenAndServe(":8080", nil))
 }
 
 func SetJSONHeader(h http.Handler) http.Handler {
