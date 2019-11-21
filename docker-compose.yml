@@ -12,11 +12,13 @@ services:
      - POSTGRES_PASSWORD=docker
      - PGDATA=/pgdata
     ports:
-      - "5432"
+      - "5432:5432"
+
   app:
     build: .
     volumes:
-      - .:/go/src/github.com/bmstu-iu8-g1-2019-project/just-to-do-it/
+      - .:/go/src/github.com/bmstu-iu8-g1-2019-project/just-to-do-it
+    # command: ["./wait-for-it.sh", "db:5432", "--", "go", "run", "src/main/main.go"]
     command: ["go", "run", "src/main/main.go"]
     ports:
       - "5000:8080"
