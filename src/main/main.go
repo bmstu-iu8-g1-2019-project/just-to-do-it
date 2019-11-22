@@ -18,10 +18,12 @@ func init() {
 
 	fmt.Println("Connecting to database server...")
 
-	db, err := services.NewDB("postgres://docker:docker@localhost:5432/todoapp")
+	db, err := services.NewDB("postgres://docker:docker@todoapp_postgres:5432/todoapp?sslmode=disable")
 	if err != nil {
 		fmt.Println(err)
 	}
+
+	fmt.Println("URA!")
 	envUser := &controllers.EnvironmentUser{ db}
 	envTask := &controllers.EnvironmentTask{ db}
 
