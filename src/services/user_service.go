@@ -2,9 +2,11 @@ package services
 
 import (
 	"fmt"
-	"github.com/bmstu-iu8-g1-2019-project/just-to-do-it/src/models"
-	"golang.org/x/crypto/bcrypt"
 	"time"
+
+	"golang.org/x/crypto/bcrypt"
+
+	"github.com/bmstu-iu8-g1-2019-project/just-to-do-it/src/models"
 )
 
 type DatastoreUser interface {
@@ -51,12 +53,12 @@ func (db *DB)Register(user models.User) (models.User, string, string) {
 		return user, "Query error", "Internal Server Error"
 	}
 	user.Password = ""
-	// запись в вспомогательную таблицу которая хранит логин его хэш и срок протухания ссылка для подтверждения почты
+	// an entry in the additional table that stores the username its hash and decay time link to confirm mail
 	err = db.recordMailConfirm(user.Login)
 	if err != nil {
 		return user, "There was no record in the additional table", "Internal Server Error"
 	}
-	// отправка сообщения на почту юзера с таким логином
+	// sending a message to the user's mail with such a login
 	err = db.sendMail(user.Login)
 	if err != nil {
 		return user, "Message was not sent", "Internal Server Error"

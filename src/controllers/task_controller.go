@@ -2,14 +2,15 @@ package controllers
 
 import (
 	"encoding/json"
-	"github.com/bmstu-iu8-g1-2019-project/just-to-do-it/src/auth"
-	"github.com/bmstu-iu8-g1-2019-project/just-to-do-it/src/utils"
-	"github.com/gorilla/mux"
 	"net/http"
 	"strconv"
 
+	"github.com/gorilla/mux"
+
+	"github.com/bmstu-iu8-g1-2019-project/just-to-do-it/src/auth"
 	"github.com/bmstu-iu8-g1-2019-project/just-to-do-it/src/models"
 	"github.com/bmstu-iu8-g1-2019-project/just-to-do-it/src/services"
+	"github.com/bmstu-iu8-g1-2019-project/just-to-do-it/src/utils"
 )
 
 type EnvironmentTask struct {
@@ -92,4 +93,3 @@ func (env *EnvironmentTask)CreateTask(w http.ResponseWriter, r *http.Request) {
 	resp = utils.Message(true,"Create task", "")
 	utils.Respond(w, resp)
 }
-

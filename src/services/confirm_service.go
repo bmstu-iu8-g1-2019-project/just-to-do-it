@@ -2,27 +2,27 @@ package services
 
 import (
 	"fmt"
-	"golang.org/x/crypto/bcrypt"
 	"net/smtp"
+	"os"
 	"time"
 
+	"golang.org/x/crypto/bcrypt"
+
 	"github.com/bmstu-iu8-g1-2019-project/just-to-do-it/src/models"
-	)
+)
 
 const (
 	url = "\nlocalhost:3000/confirm?hash="
-	from = "kolesnikov.school4@gmail.com"
-	pass = "Proektk2019"
 	msgConst = "\nFrom :%s\nTo: %s\nPlease confirm your email: %s"
 )
 
-//Генерирование хэша логниа
+// Login hash generation
 func addressGenerator(login string) (str string) {
 	hashedLogin, _ := bcrypt.GenerateFromPassword([]byte(login), 4)
 	return string(hashedLogin)
 }
 
-//запись в вспомогательную таблицу подтверждения почты
+// Write to the additional mail confirmation table
 func (db *DB) recordMailConfirm (login string) (err error){
 	secret := string(addressGenerator(login))
 	deadlineTime := time.Now().Add(24 * time.Hour)
@@ -34,7 +34,7 @@ func (db *DB) recordMailConfirm (login string) (err error){
 	return nil
 }
 
-//обновление данных если переход был по старой ссылке
+// Data update if the transition was from the old link
 func (db *DB) confirmFieldUpdate(login string, hash string) (err error) {
 	_, err = db.Exec("UPDATE auth_confirmation SET hash = $1, deadline = $2 where login = $3", hash, time.Now().Add(24 *time.Hour), login)
 	if err != nil {
@@ -57,6 +57,9 @@ func (db *DB) sendMail(login string) (err error) {
 	if err != nil {
 		return err
 	}
+
+	from, _ := os.LookupEnv("from")
+	pass, _ := os.LookupEnv("pass")
 	msg := fmt.Sprintf(msgConst, from, user.Email, url + obj.Hash)
 
 	err = smtp.SendMail("smtp.gmail.com:587",
@@ -68,6 +71,7 @@ func (db *DB) sendMail(login string) (err error) {
 		from, []string{user.Email}, []byte(msg))
 
 	if err != nil {
+		fmt.Println(err)
 		return err
 	}
 	return nil
