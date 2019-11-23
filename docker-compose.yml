@@ -1,11 +1,12 @@
 version: '3'
+
 services:
   db:
     container_name: todoapp_postgres
-    build:
-      ./src/db/
+    command: postgres -c listen_addresses='*'
+    build: src/db
     volumes:
-      - .src/db/pgdata:/pgdata
+      - .tmp/db/pgdata:/pgdata
     environment:
      - POSTGRES_DB=todoapp
      - POSTGRES_USER=docker
@@ -21,7 +22,7 @@ services:
     # command: ["./wait-for-it.sh", "db:5432", "--", "go", "run", "src/main/main.go"]
     command: ["go", "run", "src/main/main.go"]
     ports:
-      - "5000:8080"
+      - "80:8080"
     depends_on:
       - db
     links:

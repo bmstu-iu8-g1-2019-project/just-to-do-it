@@ -2,50 +2,88 @@
 
 
 [[projects]]
+  digest = "1:92a575850c86dcf03a4810bd0cc72c756c35fcc038813021760a06205b1bb768"
   name = "github.com/DATA-DOG/go-sqlmock"
   packages = ["."]
+  pruneopts = ""
   revision = "3f9954f6f6697845b082ca57995849ddf614f450"
   version = "v1.3.3"
 
 [[projects]]
+  digest = "1:f9f45f75f332e03fc7e9fe9188ea4e1ce4d14779ef34fa1b023da67518e36327"
   name = "github.com/google/go-cmp"
-  packages = ["cmp","cmp/internal/diff","cmp/internal/function","cmp/internal/value"]
+  packages = [
+    "cmp",
+    "cmp/internal/diff",
+    "cmp/internal/function",
+    "cmp/internal/value",
+  ]
+  pruneopts = ""
   revision = "3af367b6b30c263d47e8895973edcca9a49cf029"
   version = "v0.2.0"
 
 [[projects]]
+  digest = "1:883e2fdbdd0e577187bd8106fec775b1176059af267a7f40eba5308955c67d52"
   name = "github.com/gorilla/mux"
   packages = ["."]
+  pruneopts = ""
   revision = "00bdffe0f3c77e27d2cf6f5c70232a2d3e4d9c15"
   version = "v1.7.3"
 
 [[projects]]
+  digest = "1:f4216047c24ab66fb757045febd7dac4edc6f4ad9f6c0063d0755d654d04f25e"
   name = "github.com/lib/pq"
-  packages = [".","oid","scram"]
+  packages = [
+    ".",
+    "oid",
+    "scram",
+  ]
+  pruneopts = ""
   revision = "3427c32cb71afc948325f299f040e53c1dd78979"
   version = "v1.2.0"
 
 [[projects]]
+  digest = "1:1d7e1867c49a6dd9856598ef7c3123604ea3daabf5b83f303ff457bcbc410b1d"
   name = "github.com/pkg/errors"
   packages = ["."]
+  pruneopts = ""
   revision = "ba968bfe8b2f7e042a574c888954fccecfa385b4"
   version = "v0.8.1"
 
 [[projects]]
   branch = "master"
+  digest = "1:c57e5a436bda4c346e7bacb57fb0cf95613bb9b74df09202c1c0b4d6c07b7972"
   name = "golang.org/x/crypto"
-  packages = ["bcrypt","blowfish"]
-  revision = "e1110fd1c708ef015366ea01799a23c459593c47"
+  packages = [
+    "bcrypt",
+    "blowfish",
+  ]
+  pruneopts = ""
+  revision = "ac88ee75c92c889b97e05591e9a39b6480c538b3"
 
 [[projects]]
+  digest = "1:b0afe5dc12a8405637366435b1b901dae29140b5c8b41785814a6f9d14df3355"
   name = "gotest.tools"
-  packages = ["assert","assert/cmp","internal/difflib","internal/format","internal/source"]
+  packages = [
+    "assert",
+    "assert/cmp",
+    "internal/difflib",
+    "internal/format",
+    "internal/source",
+  ]
+  pruneopts = ""
   revision = "1083505acf35a0bd8a696b26837e1fb3187a7a83"
   version = "v2.3.0"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "c2b23b1893bb61d819a6e6d4e84188aff5bb54fa43ada1a11ceadf7e0a97e24f"
+  input-imports = [
+    "github.com/DATA-DOG/go-sqlmock",
+    "github.com/gorilla/mux",
+    "github.com/lib/pq",
+    "golang.org/x/crypto/bcrypt",
+    "gotest.tools/assert",
+  ]
   solver-name = "gps-cdcl"
   solver-version = 1

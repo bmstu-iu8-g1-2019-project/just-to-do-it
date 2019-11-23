@@ -1,5 +1,7 @@
 FROM golang:1.9.2
 
+EXPOSE 8080
+
 RUN apt-get -y update
 RUN apt-get install -y tree wget curl
 
@@ -20,10 +22,10 @@ ADD ./ $GOPATH/src/github.com/bmstu-iu8-g1-2019-project/just-to-do-it
 # RUN wget https://raw.githubusercontent.com/vishnubob/wait-for-it/master/wait-for-it.sh
 # RUN chmod +x wait-for-it.sh
 
-RUN tree -L 4 ./
 
 RUN chmod +x ./scripts/*
 RUN ./scripts/start.sh
+RUN go env
+RUN tree -L 4 ./vendor
 
-EXPOSE 8080
 CMD [""]
