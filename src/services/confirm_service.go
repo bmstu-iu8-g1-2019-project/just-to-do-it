@@ -6,7 +6,7 @@ import (
 	"net/smtp"
 	"time"
 
-	"dev-s/src/models"
+	"github.com/bmstu-iu8-g1-2019-project/just-to-do-it/src/models"
 	)
 
 const (
@@ -16,14 +16,16 @@ const (
 	msgConst = "\nFrom :%s\nTo: %s\nPlease confirm your email: %s"
 )
 
+//Генерирование хэша логниа
 func addressGenerator(login string) (str string) {
 	hashedLogin, _ := bcrypt.GenerateFromPassword([]byte(login), 4)
 	return string(hashedLogin)
 }
 
+//запись в вспомогательную таблицу подтверждения почты
 func (db *DB) recordMailConfirm (login string) (err error){
 	secret := string(addressGenerator(login))
-	deadlineTime := time.Now().Add(20 * time.Second)
+	deadlineTime := time.Now().Add(24 * time.Hour)
 	_, err = db.Exec("INSERT INTO auth_confirmation (login, hash, deadline) values ($1, $2, $3)",
 		login, string(secret), deadlineTime)
 	if err != nil {
@@ -32,9 +34,9 @@ func (db *DB) recordMailConfirm (login string) (err error){
 	return nil
 }
 
-
+//обновление данных если переход был по старой ссылке
 func (db *DB) confirmFieldUpdate(login string, hash string) (err error) {
-	_, err = db.Exec("UPDATE auth_confirmation SET hash = $1, deadline = $2 where login = $3", hash, time.Now().Add(2 *time.Minute), login)
+	_, err = db.Exec("UPDATE auth_confirmation SET hash = $1, deadline = $2 where login = $3", hash, time.Now().Add(24 *time.Hour), login)
 	if err != nil {
 		return err
 	}
@@ -70,5 +72,3 @@ func (db *DB) sendMail(login string) (err error) {
 	}
 	return nil
 }
-
-

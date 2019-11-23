@@ -1,43 +1,101 @@
 package services
 
 import (
-	"dev-s/src/models"
 	"fmt"
+	"github.com/bmstu-iu8-g1-2019-project/just-to-do-it/src/models"
 	"golang.org/x/crypto/bcrypt"
 	"time"
 )
 
-type Datastore interface {
-	Login(string) (models.User, error)
-	Register(models.User) (error)
-	Confirm(string) (error)
-	UpdateUser(int, models.User) (error)
+type DatastoreUser interface {
+	Login(string, string) (models.User, error)
+	Register(models.User) (models.User, string, string)
+	Confirm(string) error
+	UpdateUser(int, models.User) (models.User, error)
 	GetUser(int) (models.User, error)
-	DeleteUser(int) (error)
+	DeleteUser(int) error
 }
 
-func (db *DB)Login(login string) (obj models.User, err error) {
+// The function checks the username and password that comes
+// from the request with the username and password that lies in the database
+func (db *DB)Login(login string, password string) (models.User, error) {
+	user := models.User{}
 	row := db.QueryRow("SELECT * FROM user_table WHERE login = $1", login)
-	err = row.Scan(&obj.Id, &obj.Email, &obj.Login, &obj.Fullname, &obj.Password, &obj.AccVerified)
+	err := row.Scan(&user.Id, &user.Email, &user.Login, &user.Fullname, &user.Password, &user.AccVerified)
 	if err != nil {
-		return models.User{}, err
+		return user, err
 	}
-	return obj, nil
+	if err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)); err != nil {
+		return user, err
+	}
+	user.Password = ""
+	return user, nil
 }
 
-func (db *DB) Register(obj models.User) (err error) {
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(obj.Password), 8)
+func (db *DB)Register(user models.User) (models.User, string, string) {
+	if len(user.Password) < 6 {
+		return user, "Password must be more than 6 characters", "Bad Request"
+	}
+	// password hashing
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), 8)
 
-	_, err = db.Exec("INSERT INTO user_table (email, login, fullname, password, acc_verified) values ($1, $2, $3, $4, $5)",
-		obj.Email, obj.Login, obj.Fullname, string(hashedPassword), obj.AccVerified)
+	if user.Fullname == "" {
+		user.Fullname = user.Login
+	}
+	query := "INSERT INTO user_table (email, login, fullname, password, acc_verified)" +
+		"values ('%s', '%s', '%s', '%s', false)  RETURNING id"
+	query = fmt.Sprintf(query, user.Email, user.Login, user.Fullname, hashedPassword)
+
+	err = db.QueryRow(query).Scan(&user.Id)
+	if err != nil {
+		return user, "Query error", "Internal Server Error"
+	}
+	user.Password = ""
+	// запись в вспомогательную таблицу которая хранит логин его хэш и срок протухания ссылка для подтверждения почты
+	err = db.recordMailConfirm(user.Login)
+	if err != nil {
+		return user, "There was no record in the additional table", "Internal Server Error"
+	}
+	// отправка сообщения на почту юзера с таким логином
+	err = db.sendMail(user.Login)
+	if err != nil {
+		return user, "Message was not sent", "Internal Server Error"
+	}
+	return user, "", ""
+}
+
+// get the user structure by id
+func (db *DB) GetUser (id int) (models.User, error) {
+	user := models.User{}
+	row := db.QueryRow("SELECT * FROM user_table WHERE id = $1", id)
+	err := row.Scan(&user.Id, &user.Email, &user.Login, &user.Fullname, &user.Password, &user.AccVerified)
+	if err != nil {
+		return user, err
+	}
+	user.Password = ""
+	return user, nil
+}
+
+//update user data
+func (db *DB) UpdateUser (id int, updateUser models.User) (models.User, error) {
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(updateUser.Password), 8)
+	_, err = db.Exec("UPDATE user_table SET email = $1, login = $2, fullname = $3," +
+		"password = $4 where id = $5", updateUser.Email,
+		updateUser.Login, updateUser.Fullname, hashedPassword, id)
+	if err != nil {
+		return updateUser, err
+	}
+	updateUser.Id = id
+	updateUser.Password = ""
+	return updateUser, nil
+}
+
+func (db *DB) DeleteUser (id int) error {
+	_, err := db.GetUser(id)
 	if err != nil {
 		return err
 	}
-	err = db.recordMailConfirm(obj.Login)
-	if err != nil {
-		return err
-	}
-	err = db.sendMail(obj.Login)
+	_, err = db.Exec("DELETE  FROM user_table WHERE id = $1", id)
 	if err != nil {
 		return err
 	}
@@ -75,36 +133,4 @@ func (db *DB) Confirm(hash string) (err error) {
 		}
 		return nil
 	}
-}
-
-func (db *DB) UpdateUser (id int, updateUser models.User) (err error) {
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(updateUser.Password), 8)
-	_, err = db.Exec("UPDATE user_table SET email = $1, login = $2, fullname = $3," +
-		"password = $4, acc_verified = $5 where id = $6", updateUser.Email,
-		updateUser.Login, updateUser.Fullname, hashedPassword, updateUser.AccVerified, id)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func (db *DB) GetUser (id int) (user models.User, err error) {
-	row := db.QueryRow("SELECT * FROM user_table WHERE id = $1", id)
-	err = row.Scan(&user.Id, &user.Email, &user.Login, &user.Fullname, &user.Password, &user.AccVerified)
-	if err != nil {
-		return models.User{}, err
-	}
-	return user, nil
-}
-
-func (db *DB) DeleteUser (id int) (err error) {
-	user, err := db.GetUser(id)
-	if err != nil {
-		return err
-	}
-	_, err = db.Exec("DELETE  FROM user_table WHERE id = $1", user.Id)
-	if err != nil {
-		return err
-	}
-	return nil
 }
