@@ -2,12 +2,16 @@ package main
 
 import (
 	"fmt"
+	"log"
+	"os"
+	"net/http"
+
+	"github.com/gorilla/mux"
+
 	"github.com/bmstu-iu8-g1-2019-project/just-to-do-it/src/controllers"
 	"github.com/bmstu-iu8-g1-2019-project/just-to-do-it/src/services"
-	"github.com/gorilla/mux"
-	"log"
-	"net/http"
-	"os"
+	
+	_ "github.com/lib/pq"
 )
 
 func main() {

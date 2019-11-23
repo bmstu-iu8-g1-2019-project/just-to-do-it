@@ -1,8 +1,10 @@
 CREATE DATABASE postgres;
+
 CREATE TABLE user_table (
     id SERIAL PRIMARY KEY UNIQUE,
-    email varchar(64),
+    email varchar(64) UNIQUE,
     login varchar(32) UNIQUE,
+
     fullname varchar(128),
     password varchar(128),
     acc_verified boolean

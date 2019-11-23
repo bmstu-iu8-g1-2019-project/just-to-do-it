@@ -1,13 +1,16 @@
 package auth
 
 import (
-	"github.com/bmstu-iu8-g1-2019-project/just-to-do-it/src/models"
-	"github.com/JustToDoIt2.0/src/utils"
-	"github.com/dgrijalva/jwt-go"
 	"net/http"
 	"time"
+
+	"github.com/dgrijalva/jwt-go"
+
+	"github.com/bmstu-iu8-g1-2019-project/just-to-do-it/src/models"
+	"github.com/bmstu-iu8-g1-2019-project/just-to-do-it/src/utils"
 )
 
+//TODO: refactor this awesome way to store the secret
 var JwtKey = []byte("secret")
 
 //JWT authority structure
