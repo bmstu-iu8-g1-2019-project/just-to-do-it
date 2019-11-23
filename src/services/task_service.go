@@ -2,7 +2,6 @@ package services
 
 import (
 	"fmt"
-	"github.com/lib/pq"
 	"strconv"
 	"strings"
 	"time"
@@ -10,63 +9,17 @@ import (
 	"github.com/bmstu-iu8-g1-2019-project/just-to-do-it/src/models"
 )
 
-type DatastoreTask interface  {
-	GetTasks([]int, string) ([]models.Task, error)
-	GetTask(int, int, string, int) (models.Task, error)
-	UpdateTask(models.Task, int) error
+type DatastoreTask interface {
+	GetTasks([]int, string, int) ([]models.Task, error)
+	//GetTask(int, int, string, int) (models.Task, error)
+	//UpdateTask(models.Task, int) error
 	CreateTask(models.Task) (models.Task, error)
-	DeleteTask(int) error
-}
-
-// receive data on any of the input parameters (id, assignee_id, title, group_id)
-// returns one object of type Task
-func(db* DB) GetTask(id int, assigneeId int, title string, groupId int) (task models.Task ,err error) {
-	// map in which values from the request are put,
-	// depending on whether they were in the url or not
-	queryMap := make(map[string]interface{})
-	if id != 0 {
-		queryMap["id"] = id
-	}
-	if assigneeId != 0 {
-		queryMap["assignee_id"] = assigneeId
-	}
-	if title != "" {
-		queryMap["title"] = title
-	}
-	if groupId != 0 {
-		queryMap["group_id"] = groupId
-	}
-	query := "SELECT id, assignee_id, title, description, state, deadline, priority, creation_datetime, group_id, tags FROM task_table_test WHERE "
-
-	// generate a string for sql query
-	var values []interface{}
-	var where []string
-	i := 1
-	for k, v := range queryMap {
-		values = append(values, v)
-		where = append(where, fmt.Sprintf("%s = $%s", k, strconv.Itoa(i)))
-		i++
-	}
-	//fmt.Println(query + strings.Join(where, " AND "))
-
-	row := db.QueryRow(query + strings.Join(where, " AND "), values...)
-	if err != nil {
-		return task, err
-	}
-
-	err = row.Scan(&task.Id, &task.AssigneeId, &task.Title, &task.Description,
-		&task.State, &task.Deadline, &task.Priority, &task.CreationDatetime,
-		&task.GroupId, &task.Tag)
-	if err != nil {
-		return task, err
-	}
-
-	return task, nil
+	//DeleteTask(int) error
 }
 
 // input we get an array of values from url
 // returns an array of objects of type Task
-func(db* DB) GetTasks(idSlice []int, title string) (tasks []models.Task ,err error) {
+func(db* DB) GetTasks(idSlice []int, title string, userId int) (tasks []models.Task ,err error) {
 	queryMap := make(map[string]interface{})
 	if idSlice[0] != 0 {
 		queryMap["id"] = idSlice[0]
@@ -80,7 +33,10 @@ func(db* DB) GetTasks(idSlice []int, title string) (tasks []models.Task ,err err
 	if title != "" {
 		queryMap["title"] = title
 	}
-	query := "SELECT id, assignee_id, title, description, state, deadline, priority, creation_datetime, group_id FROM task_table_test WHERE "
+	if userId != 0 {
+		queryMap["creator_id"]= userId
+	}
+	query := "SELECT id, creator_id, assignee_id, title, description, state, deadline, priority, creation_datetime, group_id FROM task_table WHERE "
 
 	var values []interface{}
 	var where []string
@@ -101,7 +57,7 @@ func(db* DB) GetTasks(idSlice []int, title string) (tasks []models.Task ,err err
 
 	for rows.Next() {
 		task := &models.Task{}
-		err = rows.Scan(&task.Id, &task.AssigneeId, &task.Title, &task.Description,
+		err = rows.Scan(&task.Id, &task.CreatorId, &task.AssigneeId, &task.Title, &task.Description,
 			&task.State, &task.Deadline, &task.Priority, &task.CreationDatetime,
 			&task.GroupId)
 		if err != nil {
@@ -113,63 +69,18 @@ func(db* DB) GetTasks(idSlice []int, title string) (tasks []models.Task ,err err
 	return tasks, nil
 }
 
-// update task by id and parameters from the request
-func (db *DB) UpdateTask(task models.Task, Id int) error {
-	_, err := db.Exec("UPDATE task_table_test SET assignee_id = $1, title = $2, description = $3, state = $4, deadline = $5," +
-		" priority = $6, creation_datetime = $7, group_id = $8 where id = $9",
-		task.AssigneeId, task.Title, task.Description, task.State,
-		task.Deadline, task.Priority, task.CreationDatetime,
-		task.GroupId, Id)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-// get task by id
-// хз зачем, но зато в delete испольозвал)
-func (db *DB) GetTaskById (id int) (task models.Task, err error) {
-	row := db.QueryRow("SELECT * FROM task_table_test WHERE id = $1", id)
-	err = row.Scan(&task.Id, &task.AssigneeId, &task.Title, &task.Description,
-		&task.State, &task.Deadline, &task.Priority, &task.CreationDatetime, &task.GroupId)
-	if err != nil {
-		return task, err
-	}
-	return task, nil
-}
-
 //create task
 func (db *DB) CreateTask(task models.Task) (models.Task, error) {
-	tags := []*models.Tags{{}}
-	for i, tag := range task.Tag {
-		tags[i].Id = tag.Id
-		tags[i].Title = tag.Title
-		tags[i].Color = tag.Color
-	}
-
-	_, err := db.Exec("INSERT INTO task_table_test (assignee_id, title, description, state, deadline, priority," +
-		"creation_datetime, group_id, tags) values ($1, $2, $3, $4, $5, $6, $7, $8, $9::tag[])",
-		task.AssigneeId, task.Title,
-		task.Description,
-		task.State, task.Deadline, task.Priority, time.Now(),
-		task.GroupId, pq.Array(tags))
+	_, err := db.Exec("INSERT INTO task_table (creator_id, assignee_id, title, description, state, deadline, priority," +
+		"creation_datetime, group_id) values ($1, $2, $3, $4, $5, $6, $7, $8, $9)",
+		task.CreatorId, task.AssigneeId,
+		task.Title, task.Description,
+		task.State, task.Deadline,
+		task.Priority, time.Now(),
+		task.GroupId)
 
 	if err != nil {
 		return task, err
 	}
 	return task,nil
 }
-
-//delete task
-func (db *DB) DeleteTask(id int) (err error) {
-	_, err = db.GetTaskById(id)
-	if err != nil {
-		return err
-	}
-	_, err = db.Exec("DELETE FROM task_table_test WHERE id = $1", id)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-

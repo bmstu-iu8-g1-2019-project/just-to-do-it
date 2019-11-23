@@ -1,14 +1,14 @@
 package controllers
 
 import (
-	"database/sql"
 	"encoding/json"
-	"net/http"
-	"strconv"
-
+	"github.com/bmstu-iu8-g1-2019-project/just-to-do-it/src/auth"
+	"github.com/bmstu-iu8-g1-2019-project/just-to-do-it/src/utils"
 	"github.com/bmstu-iu8-g1-2019-project/just-to-do-it/src/models"
 	"github.com/bmstu-iu8-g1-2019-project/just-to-do-it/src/services"
 	"github.com/gorilla/mux"
+	"net/http"
+	"strconv"
 )
 
 type EnvironmentUser struct {
@@ -17,93 +17,62 @@ type EnvironmentUser struct {
 
 // handle for user authorization
 func (env *EnvironmentUser) ResponseLoginHandler(w http.ResponseWriter, r *http.Request) {
-	receivedObject := models.User{}
+	user := models.User{}
 	// write from the received data to the User structure
-	err := json.NewDecoder(r.Body).Decode(&receivedObject)
+	err := json.NewDecoder(r.Body).Decode(&user)
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		_ = json.NewEncoder(w).Encode(models.Message{Err: err, Msg: "Invalid parameters"})
+		utils.Respond(w, utils.Message(false,"Invalid body","Bad Request"))
 		return
 	}
 	// function checks login and password in database
-	user, err := env.Db.Login(receivedObject.Login, receivedObject.Password)
+	user, err = env.Db.Login(user.Login, user.Password)
 	if err != nil {
-		if err == sql.ErrNoRows {
-			w.WriteHeader(http.StatusNotFound)
-			_  = json.NewEncoder(w).Encode(models.Message{Err: err, Msg: "Not Found User"})
-			return
-		}
-		w.WriteHeader(http.StatusUnauthorized)
-		_ = json.NewEncoder(w).Encode(models.Message{Err: err, Msg: "Wrong login or password"})
+		utils.Respond(w, utils.Message(false,"Invalid login or password","Unauthorized"))
 		return
 	}
-	user.Password = ""
-	_ = json.NewEncoder(w).Encode(user)
-	w.WriteHeader(http.StatusOK)
+	resp := auth.CreateTokenAndSetCookie(w, user)
+	if resp != nil {
+		utils.Respond(w, resp)
+		return
+	}
+	resp = utils.Message(true, "Logged In", "")
+	resp["user"] = user
+	utils.Respond(w, resp)
 }
 
-// user registration handle
 func (env *EnvironmentUser) ResponseRegisterHandler (w http.ResponseWriter, r *http.Request) {
-	obj := &models.User{}
-	err := json.NewDecoder(r.Body).Decode(obj)
+	user := models.User{}
+	err := json.NewDecoder(r.Body).Decode(&user)
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		_ = json.NewEncoder(w).Encode(models.Message{Err: err, Msg: "Invalid parameters"})
+		utils.Respond(w, utils.Message(false,"Invalid body","Bad Request"))
 		return
 	}
-	if obj.Password == ""  || obj.Login == "" || obj.Email == ""{
-		w.WriteHeader(http.StatusBadRequest)
-		_ = json.NewEncoder(w).Encode(models.Message{Err : err, Msg: "Invalid parameters"})
+
+	if user.Password == ""  || user.Login == "" || user.Email == ""{
+		utils.Respond(w, utils.Message(false,"Invalid body","Bad Request"))
 		return
 	}
 	//function that detects the user and hashes his password
-	user := models.User{}
-	user, err = env.Db.Register(*obj)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		_ = json.NewEncoder(w).Encode(models.Message{Err : err, Msg: "Internal Server Error"})
+	user, msg, errStr := env.Db.Register(user)
+	if msg != "" {
+		utils.Respond(w, utils.Message(false, msg, errStr))
 		return
 	}
-	user.Password = ""
-	_ = json.NewEncoder(w).Encode(user)
-	w.WriteHeader(http.StatusOK)
+	resp := auth.CreateTokenAndSetCookie(w, user)
+	if resp != nil {
+		utils.Respond(w, resp)
+		return
+	}
+	resp = utils.Message(true, "User created", "")
+	resp["user"] = user
+	utils.Respond(w, resp)
 }
 
-// mail confirmation handle
 func (env *EnvironmentUser) ConfirmEmailHandler (w http.ResponseWriter, r *http.Request) {
 	hash := r.URL.Query().Get("hash")
 	err := env.Db.Confirm(hash)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		_ = json.NewEncoder(w).Encode(models.Message{Err : err, Msg: "Internal Server Error"})
-		return
-	}
-	w.WriteHeader(http.StatusOK)
-}
-
-// user update handle
-func (env *EnvironmentUser) UpdateUserHandler (w http.ResponseWriter, r *http.Request) {
-	receivedObject := models.User{}
-	// get the structure from the request
-	err := json.NewDecoder(r.Body).Decode(&receivedObject)
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		_ = json.NewEncoder(w).Encode(models.Message{Err : err, Msg: "Invalid parameters"})
-		return
-	}
-	// get from url id
-	paramFromURL := mux.Vars(r)
-	id, err := strconv.Atoi(paramFromURL["id"])
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		_ = json.NewEncoder(w).Encode(models.Message{Err : err, Msg: "Invalid parameters"})
-		return
-	}
-	// function updates by id and data from the request
-	err = env.Db.UpdateUser(int(id), receivedObject)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		_ = json.NewEncoder(w).Encode(models.Message{Err : err, Msg: "Internal Server Error"})
 		return
 	}
 	w.WriteHeader(http.StatusOK)
@@ -113,43 +82,86 @@ func (env *EnvironmentUser) GetUserHandler (w http.ResponseWriter, r *http.Reque
 	paramFromURL := mux.Vars(r)
 	id, err := strconv.Atoi(paramFromURL["id"])
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		_ = json.NewEncoder(w).Encode(models.Message{Err : err, Msg: "Invalid parameters"})
+		utils.Respond(w, utils.Message(false,"Invalid id","Bad Request"))
 		return
 	}
+
+	//проверка и в случае таймута рефреш токена
+	resp := auth.CheckTokenAndRefresh(w, r, id)
+	if resp["status"] == false {
+		utils.Respond(w, resp)
+		return
+	}
+
+	//Get user
 	user, err := env.Db.GetUser(int(id))
 	if err != nil {
-		if err == sql.ErrNoRows {
-			w.WriteHeader(http.StatusNotFound)
-			_ = json.NewEncoder(w).Encode(models.Message{Err : err, Msg: "Not found user"})
-		}
-		w.WriteHeader(http.StatusInternalServerError)
-		_ = json.NewEncoder(w).Encode(models.Message{Err : err, Msg: "Internal server error"})
+		utils.Respond(w, utils.Message(false,"Not found user in db","Internal Server Error"))
 		return
 	}
-	_ = json.NewEncoder(w).Encode(user)
-	w.WriteHeader(http.StatusOK)
+	resp = utils.Message(true, "Get user", "")
+	resp["user"] = user
+	utils.Respond(w, resp)
+}
+
+func (env *EnvironmentUser) UpdateUserHandler (w http.ResponseWriter, r *http.Request) {
+	user := models.User{}
+	//получаем из запроса структуру
+	err := json.NewDecoder(r.Body).Decode(&user)
+	if err != nil {
+		utils.Respond(w, utils.Message(false,"Invalid body","Bad Request"))
+		return
+	}
+	if  user.Email == "" || user.Fullname == "" ||
+		user.Login == "" || user.Password == "" {
+		utils.Respond(w, utils.Message(false,"Invalid body","Bad Request"))
+		return
+	}
+	//получаем из url id
+	paramFromURL := mux.Vars(r)
+	id, err := strconv.Atoi(paramFromURL["id"])
+	if err != nil {
+		utils.Respond(w, utils.Message(false,"Invalid id","Bad Request"))
+		return
+	}
+
+	//проверка и в случае таймута рефреш токена
+	resp := auth.CheckTokenAndRefresh(w, r, id)
+	if resp["status"] == false {
+		utils.Respond(w, resp)
+		return
+	}
+
+	// обновляем юзера по пришедшему из path id и json
+	user, err = env.Db.UpdateUser(int(id), user)
+	if err != nil {
+		utils.Respond(w, utils.Message(false, "Database error", "Internal Server Error"))
+		return
+	}
+	resp = utils.Message(true, "Update user", "")
+	resp["user"] = user
+	utils.Respond(w, resp)
 }
 
 func (env *EnvironmentUser) DeleteUserHandler (w http.ResponseWriter, r *http.Request) {
 	paramFromURL := mux.Vars(r)
 	id, err := strconv.Atoi(paramFromURL["id"])
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		_ = json.NewEncoder(w).Encode(models.Message{Err : err, Msg: "Invalid parameters"})
+		utils.Respond(w, utils.Message(false,"Invalid id","Bad Request"))
 		return
 	}
+	//проверка и в случае таймута рефреш токена
+	resp := auth.CheckTokenAndRefresh(w, r, id)
+	if resp["status"] == false {
+		utils.Respond(w, resp)
+		return
+	}
+
 	err = env.Db.DeleteUser(id)
 	if err != nil {
-		if err == sql.ErrNoRows {
-			w.WriteHeader(http.StatusNotFound)
-			_ = json.NewEncoder(w).Encode(models.Message{Err : err, Msg: "Not found user"})
-			return
-		}
-		w.WriteHeader(http.StatusInternalServerError)
-		_ = json.NewEncoder(w).Encode(models.Message{Err : err, Msg: "Internal server error"})
+		utils.Respond(w, utils.Message(false,"Database error","Internal Server Error"))
 		return
 	}
-	w.WriteHeader(http.StatusOK)
-	_ = json.NewEncoder(w).Encode(models.Message{Err : nil, Msg: "Deleted User"})
+	resp = utils.Message(true, "User deleted", "")
+	utils.Respond(w, resp)
 }

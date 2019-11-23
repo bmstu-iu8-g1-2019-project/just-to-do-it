@@ -2,82 +2,106 @@ package services
 
 import (
 	"fmt"
-	"time"
-
 	"github.com/bmstu-iu8-g1-2019-project/just-to-do-it/src/models"
 	"golang.org/x/crypto/bcrypt"
+	"time"
 )
 
 type DatastoreUser interface {
-        Login(string, string) (models.User, error)
-	Register(models.User) (models.User, error)
+	Login(string, string) (models.User, error)
+	Register(models.User) (models.User, string, string)
 	Confirm(string) error
-	UpdateUser(int, models.User) error
+	UpdateUser(int, models.User) (models.User, error)
 	GetUser(int) (models.User, error)
 	DeleteUser(int) error
 }
 
 // The function checks the username and password that comes
 // from the request with the username and password that lies in the database
-func (db *DB)Login(login string, password string) (user models.User, err error) {
+func (db *DB)Login(login string, password string) (models.User, error) {
+	user := models.User{}
 	row := db.QueryRow("SELECT * FROM user_table WHERE login = $1", login)
-	err = row.Scan(&user.Id, &user.Email, &user.Login, &user.Fullname, &user.Password, &user.AccVerified)
+	err := row.Scan(&user.Id, &user.Email, &user.Login, &user.Fullname, &user.Password, &user.AccVerified)
 	if err != nil {
 		return user, err
 	}
 	if err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)); err != nil {
 		return user, err
 	}
-	return user,nil
+	user.Password = ""
+	return user, nil
 }
 
-
-// user registration (User structure comes)
-func (db *DB) Register(obj models.User) (models.User, error) {
+func (db *DB)Register(user models.User) (models.User, string, string) {
+	if len(user.Password) < 6 {
+		return user, "Password must be more than 6 characters", "Bad Request"
+	}
 	// password hashing
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(obj.Password), 8)
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), 8)
 
-	if obj.Fullname == "" {
-		obj.Fullname = obj.Login
+	if user.Fullname == "" {
+		user.Fullname = user.Login
 	}
 	query := "INSERT INTO user_table (email, login, fullname, password, acc_verified)" +
-		     "values ('%s', '%s', '%s', '%s', false)  RETURNING id"
-	query = fmt.Sprintf(query, obj.Email, obj.Login, obj.Fullname, hashedPassword)
+		"values ('%s', '%s', '%s', '%s', false)  RETURNING id"
+	query = fmt.Sprintf(query, user.Email, user.Login, user.Fullname, hashedPassword)
 
-	err = db.QueryRow(query).Scan(&obj.Id)
+	err = db.QueryRow(query).Scan(&user.Id)
 	if err != nil {
-		return obj, nil
+		return user, "Query error", "Internal Server Error"
 	}
-	//result, err := db.Exec("INSERT INTO user_table (email, login, fullname, password, acc_verified) values ($1, $2, $3, $4, $5)  RETURNING id",
-	//	obj.Email, obj.Login, obj.Fullname, string(hashedPassword), false)
-	//if err != nil {
-	//	return obj, err
-	//}
-	//id, err := result.LastInsertId()
-	//if err != nil {
-	//	fmt.Println(err)
-	//	fmt.Println(id)
-	//}
-	//obj.Id = int(id)
-
-
-	//write to the auxiliary table that stores the username its hash
-	// and the expiration of the link to confirm mail
-	err = db.recordMailConfirm(obj.Login)
+	user.Password = ""
+	// запись в вспомогательную таблицу которая хранит логин его хэш и срок протухания ссылка для подтверждения почты
+	err = db.recordMailConfirm(user.Login)
 	if err != nil {
-		return obj, err
+		return user, "There was no record in the additional table", "Internal Server Error"
 	}
-	// send a message to the user's mail with such a login
-	err = db.sendMail(obj.Login)
+	// отправка сообщения на почту юзера с таким логином
+	err = db.sendMail(user.Login)
 	if err != nil {
-		return obj, err
+		return user, "Message was not sent", "Internal Server Error"
 	}
-	return obj, err
+	return user, "", ""
 }
 
-// function that when clicking on the old link generates a new hash and resends the message to the mail
-// else
-// assigns "true" in the "acc_verified" field of the usera table and removes the entry from the auxiliary database
+// get the user structure by id
+func (db *DB) GetUser (id int) (models.User, error) {
+	user := models.User{}
+	row := db.QueryRow("SELECT * FROM user_table WHERE id = $1", id)
+	err := row.Scan(&user.Id, &user.Email, &user.Login, &user.Fullname, &user.Password, &user.AccVerified)
+	if err != nil {
+		return user, err
+	}
+	user.Password = ""
+	return user, nil
+}
+
+//update user data
+func (db *DB) UpdateUser (id int, updateUser models.User) (models.User, error) {
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(updateUser.Password), 8)
+	_, err = db.Exec("UPDATE user_table SET email = $1, login = $2, fullname = $3," +
+		"password = $4 where id = $5", updateUser.Email,
+		updateUser.Login, updateUser.Fullname, hashedPassword, id)
+	if err != nil {
+		return updateUser, err
+	}
+	updateUser.Id = id
+	updateUser.Password = ""
+	return updateUser, nil
+}
+
+func (db *DB) DeleteUser (id int) error {
+	_, err := db.GetUser(id)
+	if err != nil {
+		return err
+	}
+	_, err = db.Exec("DELETE  FROM user_table WHERE id = $1", id)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (db *DB) Confirm(hash string) (err error) {
 	var conf models.AuthConfirmation
 	row := db.QueryRow("SELECT * FROM auth_confirmation WHERE hash = $1", hash)
@@ -109,39 +133,4 @@ func (db *DB) Confirm(hash string) (err error) {
 		}
 		return nil
 	}
-}
-
-// update the user according to the parameters from the new request
-func (db *DB) UpdateUser (id int, updateUser models.User) (err error) {
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(updateUser.Password), 8)
-	_, err = db.Exec("UPDATE user_table SET email = $1, login = $2, fullname = $3," +
-		"password = $4, acc_verified = $5 where id = $6", updateUser.Email,
-		updateUser.Login, updateUser.Fullname, hashedPassword, updateUser.AccVerified, id)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-// get the user structure by id
-func (db *DB) GetUser (id int) (user models.User, err error) {
-	row := db.QueryRow("SELECT * FROM user_table WHERE id = $1", id)
-	err = row.Scan(&user.Id, &user.Email, &user.Login, &user.Fullname, &user.Password, &user.AccVerified)
-	if err != nil {
-		return models.User{}, err
-	}
-	return user, nil
-}
-
-// delete user by id
-func (db *DB) DeleteUser (id int) (err error) {
-	user, err := db.GetUser(id)
-	if err != nil {
-		return err
-	}
-	_, err = db.Exec("DELETE  FROM user_table WHERE id = $1", user.Id)
-	if err != nil {
-		return err
-	}
-	return nil
 }

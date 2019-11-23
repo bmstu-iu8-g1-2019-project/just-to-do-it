@@ -1,10 +1,8 @@
 package services
 
 import (
-	"fmt"
 	"database/sql"
-
-	"github.com/DATA-DOG/go-sqlmock"
+	"fmt"
 )
 
 // structure for functions that access the database
@@ -34,25 +32,5 @@ func NewDB() (*DB, error) {
 		return nil, err
 	}
 	fmt.Println("Successfully connected!")
-	return &DB{db}, nil
-}
-
-//для тестов (пока ничего не написал(((((
-func NewMockDB() (*DB, error) {
-	db, mock, err := sqlmock.New()
-
-	if err != nil {
-		return &DB{}, err
-	}
-	defer db.Close()
-
-	rows := sqlmock.NewRows([]string{"id", "email", "login", "fullname", "password", "acc_verified"}).
-		AddRow(1, "Just@mail.com", "To", "Do", "It", false).
-		AddRow(2, "a", "b", "c", "d", true)
-
-	mock.ExpectQuery("^SELECT (.+) FROM user_table*").
-		WithArgs(2).
-		WillReturnRows(rows)
-
 	return &DB{db}, nil
 }

@@ -14,6 +14,19 @@ CREATE TABLE auth_confirmation (
     deadline TIMESTAMP WITH TIME ZONE
 );
 
+CREATE TABLE task_table (
+    id SERIAL PRIMARY KEY UNIQUE,
+    creator_id int,
+    assignee_id int,
+    title varchar(128),
+    description varchar(128),
+    state varchar(32),
+    deadline TIMESTAMP WITH TIME ZONE,
+    priority int,
+    creation_datetime TIMESTAMP WITH TIME ZONE,
+    group_id int
+);
+
 CREATE TABLE group_table (
     id SERIAL PRIMARY KEY UNIQUE,
     title varchar(32),
