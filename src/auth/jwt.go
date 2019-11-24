@@ -103,7 +103,7 @@ func RefreshToken(claims Token) (tokenStr string, resp map[string] interface{}) 
 	return tokenStr, nil
 }
 
-func RefreshNotAccesToken(w http.ResponseWriter, r *http.Request, id int) map[string] interface{} {
+func RefreshAccessAndRefreshToken(w http.ResponseWriter, r *http.Request, id int) map[string] interface{} {
 	//getting a token from cookies
 	c, err := r.Cookie("refresh_token")
 	if err != nil {
@@ -160,7 +160,7 @@ func CheckTokenAndRefresh(w http.ResponseWriter, r *http.Request, id int) map[st
 	var resp map[string] interface{}
 	_, err := r.Cookie("access_token")
 	if err != nil {
-		resp = RefreshNotAccesToken(w, r, id)
+		resp = RefreshAccessAndRefreshToken(w, r, id)
 	} else {
 		return utils.Message(true, "Check token", "")
 	}
