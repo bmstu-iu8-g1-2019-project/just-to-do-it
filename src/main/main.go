@@ -38,14 +38,16 @@ func main() {
 
 	r := mux.NewRouter()
 
-	r.HandleFunc("/user/register", envUser.ResponseRegisterHandler).Methods("POST")
-	r.HandleFunc("/user/login", envUser.ResponseLoginHandler).Methods("GET")
+	r.HandleFunc("/register", envUser.ResponseRegisterHandler).Methods("POST")
+	r.HandleFunc("/login", envUser.ResponseLoginHandler).Methods("POST")
 	r.HandleFunc("/user/{id}", envUser.GetUserHandler).Methods("GET")
 	r.HandleFunc("/user/{id}", envUser.UpdateUserHandler).Methods("PUT")
 	r.HandleFunc("/user/{id}", envUser.DeleteUserHandler).Methods("DELETE")
 	r.HandleFunc("/confirm", envUser.ConfirmEmailHandler).Methods("GET")
 	r.HandleFunc("/user/{id}/tasks", envTask.GetTasksHandler).Methods("GET")
 	r.HandleFunc("/user/{id}/task/create", envTask.CreateTask).Methods("POST")
+	r.HandleFunc("/user/{id}/task/{task_id}", envTask.GetTaskHandler).Methods("GET")
+	r.HandleFunc("/user/{id}/task/{task_id}", envTask.UpdateTask).Methods("PUT")
 
 	err = http.ListenAndServe(":" + port, r)
 	if err != nil {
