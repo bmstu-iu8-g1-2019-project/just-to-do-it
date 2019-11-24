@@ -11,9 +11,9 @@ import (
 
 type DatastoreTask interface {
 	GetTasks([]int, string, int) ([]models.Task, error)
-	//GetTask(int, int, string, int) (models.Task, error)
-	//UpdateTask(models.Task, int) error
-	CreateTask(models.Task) (models.Task, error)
+	GetTaskById(int) (models.Task, error)
+	UpdateTask(models.Task, int) (models.Task, error)
+	CreateTask(models.Task, int) (models.Task, error)
 	//DeleteTask(int) error
 }
 
@@ -50,7 +50,7 @@ func(db* DB) GetTasks(idSlice []int, title string, userId int) (tasks []models.T
 
 	rows, err := db.Query(query + strings.Join(where, " AND "), values...)
 	if err != nil {
-		return tasks, err
+		return []models.Task{}, err
 	}
 
 	tasks = make([]models.Task, 0)
@@ -69,18 +69,46 @@ func(db* DB) GetTasks(idSlice []int, title string, userId int) (tasks []models.T
 	return tasks, nil
 }
 
-//create task
-func (db *DB) CreateTask(task models.Task) (models.Task, error) {
-	_, err := db.Exec("INSERT INTO task_table (creator_id, assignee_id, title, description, state, deadline, priority," +
-		"creation_datetime, group_id) values ($1, $2, $3, $4, $5, $6, $7, $8, $9)",
-		task.CreatorId, task.AssigneeId,
-		task.Title, task.Description,
-		task.State, task.Deadline,
-		task.Priority, time.Now(),
-		task.GroupId)
-
+//get task
+func (db *DB) GetTaskById (id int) (task models.Task, err error) {
+	row := db.QueryRow("SELECT * FROM task_table WHERE id = $1", id)
+	err = row.Scan(&task.Id, &task.CreatorId, &task.AssigneeId, &task.Title, &task.Description,
+		&task.State, &task.Deadline, &task.Priority, &task.CreationDatetime, &task.GroupId)
 	if err != nil {
-		return task, err
+		return models.Task{}, err
 	}
+	return task, nil
+}
+
+//create task
+func (db *DB) CreateTask(task models.Task, userId int) (models.Task, error) {
+	query := "INSERT INTO task_table (creator_id, assignee_id, title, description, state, deadline, priority, creation_datetime, group_id) values ('%d', '%d', '%s', '%s', '%s', '%d', '%d', '%d', '%d')  RETURNING id"
+	query = fmt.Sprintf(query, userId, task.AssigneeId, task.Title, task.Description, task.State,
+		                task.Deadline, task.Priority, time.Now().Unix(), task.GroupId)
+	err := db.QueryRow(query).Scan(&task.Id)
+	if err != nil {
+		return models.Task{}, err
+	}
+	task.CreationDatetime = time.Now().Unix()
+	task.CreatorId = userId
+	return task,nil
+}
+
+//update task
+func (db *DB) UpdateTask(UpdateTask models.Task, Id int) (models.Task, error) {
+	task, err := db.GetTaskById(Id)
+	_, err = db.Exec("UPDATE task_table SET assignee_id = $1, title = $2, description = $3, state = $4, deadline = $5," +
+		" priority = $6 where id = $7",
+		UpdateTask.AssigneeId, UpdateTask.Title, UpdateTask.Description, UpdateTask.State,
+		UpdateTask.Deadline, UpdateTask.Priority, Id)
+	if err != nil {
+		return models.Task{}, err
+	}
+	task.AssigneeId = UpdateTask.AssigneeId
+	task.Title = UpdateTask.Title
+	task.Description = UpdateTask.Description
+	task.State = UpdateTask.State
+	task.Deadline = UpdateTask.Deadline
+	task.Priority = UpdateTask.Priority
 	return task,nil
 }

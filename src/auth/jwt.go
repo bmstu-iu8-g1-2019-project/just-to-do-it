@@ -128,10 +128,12 @@ func RefreshAccessAndRefreshToken(w http.ResponseWriter, r *http.Request, id int
 	if resp != nil {
 		return resp
 	}
+
 	http.SetCookie(w, &http.Cookie{
 		Name: "access_token",
 		Value: checkTokenStr,
 		Expires: expirationTime,
+		Path: "/",
 	})
 
 	expirationTime = time.Now().Add(24 * time.Hour)
@@ -144,7 +146,9 @@ func RefreshAccessAndRefreshToken(w http.ResponseWriter, r *http.Request, id int
 	http.SetCookie(w, &http.Cookie{
 		Name: "refresh_token",
 		Value: checkTokenStr,
-		Expires: expirationTime,})
+		Expires: expirationTime,
+	    Path: "/",
+	})
 
 	//check id in url and id in cookies
 	if claims.UserId != id {
@@ -158,10 +162,20 @@ func RefreshAccessAndRefreshToken(w http.ResponseWriter, r *http.Request, id int
 func CheckTokenAndRefresh(w http.ResponseWriter, r *http.Request, id int) map[string] interface{} {
 	//check deadline access_token
 	var resp map[string] interface{}
-	_, err := r.Cookie("access_token")
+	c, err := r.Cookie("access_token")
 	if err != nil {
 		resp = RefreshAccessAndRefreshToken(w, r, id)
 	} else {
+		checkTokenStr := c.Value
+		claims := Token{}
+		claims, resp := JwtAuth(claims, checkTokenStr)
+		if resp != nil {
+			return resp
+		}
+		//check id in url and id in cookies
+		if claims.UserId != id {
+			return utils.Message(false,"id do not match","Unauthorized")
+		}
 		return utils.Message(true, "Check token", "")
 	}
 	return resp

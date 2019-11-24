@@ -23,9 +23,9 @@ CREATE TABLE task_table (
     title varchar(128),
     description varchar(128),
     state varchar(32),
-    deadline TIMESTAMP WITH TIME ZONE,
+    deadline int,
     priority int,
-    creation_datetime TIMESTAMP WITH TIME ZONE,
+    creation_datetime int,
     group_id int
 );
 

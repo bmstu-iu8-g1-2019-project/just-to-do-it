@@ -65,6 +65,38 @@ func(env *EnvironmentTask) GetTasksHandler(w http.ResponseWriter, r *http.Reques
 	utils.Respond(w, resp)
 }
 
+func (env *EnvironmentTask)GetTaskHandler(w http.ResponseWriter, r *http.Request) {
+	//parse id
+	paramFromURL := mux.Vars(r)
+	taskId, err := strconv.Atoi(paramFromURL["task_id"])
+	if err != nil {
+		utils.Respond(w, utils.Message(false,"Invalid id","Bad Request"))
+		return
+	}
+	userId, err := strconv.Atoi(paramFromURL["id"])
+	if err != nil {
+		utils.Respond(w, utils.Message(false,"Invalid id","Bad Request"))
+		return
+	}
+
+	//check token
+	resp := auth.CheckTokenAndRefresh(w, r, userId)
+	if resp["status"] == false {
+		utils.Respond(w, resp)
+		return
+	}
+
+	task, err := env.Db.GetTaskById(taskId)
+	if err != nil {
+		utils.Respond(w, utils.Message(false, err.Error(), "Internal Server Error"))
+		return
+	}
+
+	resp = utils.Message(true, "Get task", "")
+	resp["task"] = task
+	utils.Respond(w, resp)
+}
+
 func (env *EnvironmentTask)CreateTask(w http.ResponseWriter, r *http.Request) {
 	paramFromURL := mux.Vars(r)
 	id, err := strconv.Atoi(paramFromURL["id"])
@@ -85,11 +117,48 @@ func (env *EnvironmentTask)CreateTask(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	task, err = env.Db.CreateTask(task)
+	task, err = env.Db.CreateTask(task, id)
 	if err != nil {
-		utils.Respond(w, utils.Message(false,"db error", "Internal Server Error"))
+		utils.Respond(w, utils.Message(false,err.Error(), "Internal Server Error"))
 		return
 	}
 	resp = utils.Message(true,"Create task", "")
+	resp["task"] = task
+	utils.Respond(w, resp)
+}
+
+//update
+func (env *EnvironmentTask)UpdateTask(w http.ResponseWriter, r *http.Request) {
+	paramFromURL := mux.Vars(r)
+	id, err := strconv.Atoi(paramFromURL["id"])
+	if err != nil {
+		utils.Respond(w, utils.Message(false,"Invalid id","Bad Request"))
+		return
+	}
+	taskId, err := strconv.Atoi(paramFromURL["task_id"])
+	if err != nil {
+		utils.Respond(w, utils.Message(false,"Invalid id","Bad Request"))
+		return
+	}
+	//проверка и в случае таймута рефреш токена
+	resp := auth.CheckTokenAndRefresh(w, r, id)
+	if resp["status"] == false {
+		utils.Respond(w, resp)
+		return
+	}
+	task := models.Task{}
+	err = json.NewDecoder(r.Body).Decode(&task)
+	if err != nil {
+		utils.Respond(w, utils.Message(false,"Invalid body", "Bad Request"))
+		return
+	}
+
+	task, err = env.Db.UpdateTask(task, taskId)
+	if err != nil {
+		utils.Respond(w, utils.Message(false, err.Error(),"Internal Server Error"))
+		return
+	}
+	resp = utils.Message(true, "Update task", "")
+	resp["task"] = task
 	utils.Respond(w, resp)
 }
