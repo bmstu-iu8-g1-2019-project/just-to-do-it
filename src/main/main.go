@@ -2,12 +2,14 @@ package main
 
 import (
 	"fmt"
+	"log"
+	"net/http"
+	"time"
+
 	"github.com/bmstu-iu8-g1-2019-project/just-to-do-it/src/controllers"
 	"github.com/bmstu-iu8-g1-2019-project/just-to-do-it/src/services"
 	"github.com/gorilla/mux"
 	_ "github.com/lib/pq"
-	"log"
-	"net/http"
 )
 
 var (
@@ -18,14 +20,38 @@ func init() {
 
 	fmt.Println("Connecting to database server...")
 
-	db, err := services.NewDB("postgres://docker:docker@todoapp_postgres:5432/todoapp?sslmode=disable")
-	if err != nil {
-		fmt.Println(err)
+	var db *services.DB
+	chanDB := make(chan *services.DB, 1)
+	timeout := time.After(time.Second * 16)
+	go func() {
+		for {
+			db, err := services.NewDB("postgres://docker:docker@todoapp_postgres:5432/todoapp?sslmode=disable")
+			if err != nil {
+				log.Println(err)
+				time.Sleep(time.Millisecond * 1500)
+			} else {
+				chanDB <- db
+				return
+			}
+		}
+	}()
+
+MAIN:
+	for {
+		select {
+		case database := <-chanDB:
+			db = database
+			log.Println("Connected to database")
+			break MAIN
+		case <-timeout:
+			log.Println("Timout: connection was not established")
+			panic("timeout")
+		}
 	}
 
 	fmt.Println("URA!")
-	envUser := &controllers.EnvironmentUser{ db}
-	envTask := &controllers.EnvironmentTask{ db}
+	envUser := &controllers.EnvironmentUser{db}
+	envTask := &controllers.EnvironmentTask{db}
 
 	r := mux.NewRouter()
 	r.Use(SetJSONHeader)
