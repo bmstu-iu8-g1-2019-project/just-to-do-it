@@ -114,7 +114,11 @@ func RefreshAccessAndRefreshToken(w http.ResponseWriter, r *http.Request, id int
 	}
 
 	checkTokenStr := c.Value
-	claims := Token{}
+	claims := Token{
+		StandardClaims: jwt.StandardClaims{
+			ExpiresAt: c.Expires.Unix(),
+		},
+	}
 	claims, resp := JwtAuth(claims, checkTokenStr)
 	if resp != nil {
 		return resp

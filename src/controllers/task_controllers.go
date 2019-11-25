@@ -92,6 +92,10 @@ func (env *EnvironmentTask)GetTaskHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 
+	if task.CreatorId != userId {
+		utils.Respond(w, utils.Message(false, "id dont match", "Unauthorized"))
+		return
+	}
 	resp = utils.Message(true, "Get task", "")
 	resp["task"] = task
 	utils.Respond(w, resp)
