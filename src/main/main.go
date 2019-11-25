@@ -29,7 +29,7 @@ func main() {
 	}
 
 	envUser := &controllers.EnvironmentUser{Db: db}
-	envTask := &controllers.EnvironmentTask{Db: db}
+	//envTask := &controllers.EnvironmentTask{Db: db}
 
 	port := os.Getenv("PORT")
 	if port == "" {
@@ -44,10 +44,10 @@ func main() {
 	r.HandleFunc("/user/{id}", envUser.UpdateUserHandler).Methods("PUT")
 	r.HandleFunc("/user/{id}", envUser.DeleteUserHandler).Methods("DELETE")
 	r.HandleFunc("/confirm", envUser.ConfirmEmailHandler).Methods("GET")
-	r.HandleFunc("/user/{id}/tasks", envTask.GetTasksHandler).Methods("GET")
-	r.HandleFunc("/user/{id}/task/create", envTask.CreateTask).Methods("POST")
-	r.HandleFunc("/user/{id}/task/{task_id}", envTask.GetTaskHandler).Methods("GET")
-	r.HandleFunc("/user/{id}/task/{task_id}", envTask.UpdateTask).Methods("PUT")
+	//r.HandleFunc("/user/{id}/tasks", envTask.GetTasksHandler).Methods("GET")
+	//r.HandleFunc("/user/{id}/task/create", envTask.CreateTask).Methods("POST")
+	//r.HandleFunc("/user/{id}/task/{task_id}", envTask.GetTaskHandler).Methods("GET")
+	//r.HandleFunc("/user/{id}/task/{task_id}", envTask.UpdateTask).Methods("PUT")
 
 
 	err = http.ListenAndServe(":" + port, r)

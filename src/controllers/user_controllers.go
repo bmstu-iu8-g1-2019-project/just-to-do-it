@@ -32,12 +32,21 @@ func (env *EnvironmentUser) ResponseLoginHandler(w http.ResponseWriter, r *http.
 		utils.Respond(w, utils.Message(false,"Invalid login or password","Unauthorized"))
 		return
 	}
-	resp := auth.CreateTokenAndSetCookie(w, user)
-	if resp != nil {
-		utils.Respond(w, resp)
+
+	accToken, err := auth.CreateAccessToken(user.Id)
+	if err != nil {
+		utils.Respond(w, utils.Message(false, err.Error(), "Unauthorized"))
 		return
 	}
-	resp = utils.Message(true, "Logged In", "")
+	auth.SetCookieForAccToken(w, accToken)
+	refToken, err := auth.CreateRefreshToken(user.Id)
+	if err != nil {
+		utils.Respond(w, utils.Message(false, err.Error(), "Unauthorized"))
+		return
+	}
+	auth.SetCookieForRefToken(w, refToken)
+
+	resp := utils.Message(true, "Logged In", "")
 	resp["user"] = user
 	utils.Respond(w, resp)
 }
@@ -60,12 +69,21 @@ func (env *EnvironmentUser) ResponseRegisterHandler (w http.ResponseWriter, r *h
 		utils.Respond(w, utils.Message(false, msg, errStr))
 		return
 	}
-	resp := auth.CreateTokenAndSetCookie(w, user)
-	if resp != nil {
-		utils.Respond(w, resp)
+
+	accToken, err := auth.CreateAccessToken(user.Id)
+	if err != nil {
+		utils.Respond(w, utils.Message(false, err.Error(), "Unauthorized"))
 		return
 	}
-	resp = utils.Message(true, "User created", "")
+	auth.SetCookieForAccToken(w, accToken)
+	refToken, err := auth.CreateRefreshToken(user.Id)
+	if err != nil {
+		utils.Respond(w, utils.Message(false, err.Error(), "Unauthorized"))
+		return
+	}
+	auth.SetCookieForRefToken(w, refToken)
+
+	resp := utils.Message(true, "User created", "")
 	resp["user"] = user
 	utils.Respond(w, resp)
 }
@@ -89,19 +107,23 @@ func (env *EnvironmentUser) GetUserHandler (w http.ResponseWriter, r *http.Reque
 	}
 
 	//проверка и в случае таймута рефреш токена
-	resp := auth.CheckTokenAndRefresh(w, r, id)
-	if resp["status"] == false {
-		utils.Respond(w, resp)
+	//resp := auth.CheckTokenAndRefresh(w, r, id)
+	//if resp["status"] == false {
+	//	utils.Respond(w, resp)
+	//	return
+	//}
+	err = auth.TokenValid(w, r)
+	if err != nil {
+		utils.Respond(w, utils.Message(false, err.Error(), "Unauthorized"))
 		return
 	}
-
 	//Get user
 	user, err := env.Db.GetUser(int(id))
 	if err != nil {
 		utils.Respond(w, utils.Message(false,"Not found user in db","Internal Server Error"))
 		return
 	}
-	resp = utils.Message(true, "Get user", "")
+	resp := utils.Message(true, "Get user", "")
 	resp["user"] = user
 	utils.Respond(w, resp)
 }
@@ -128,11 +150,11 @@ func (env *EnvironmentUser) UpdateUserHandler (w http.ResponseWriter, r *http.Re
 	}
 
 	//проверка и в случае таймута рефреш токена
-	resp := auth.CheckTokenAndRefresh(w, r, id)
-	if resp["status"] == false {
-		utils.Respond(w, resp)
-		return
-	}
+	//resp := auth.CheckTokenAndRefresh(w, r, id)
+	//if resp["status"] == false {
+	//	utils.Respond(w, resp)
+	//	return
+	//}
 
 	// обновляем юзера по пришедшему из path id и json
 	user, err = env.Db.UpdateUser(int(id), user)
@@ -140,7 +162,7 @@ func (env *EnvironmentUser) UpdateUserHandler (w http.ResponseWriter, r *http.Re
 		utils.Respond(w, utils.Message(false, "Database error", "Internal Server Error"))
 		return
 	}
-	resp = utils.Message(true, "Update user", "")
+	resp := utils.Message(true, "Update user", "")
 	resp["user"] = user
 	utils.Respond(w, resp)
 }
@@ -153,17 +175,17 @@ func (env *EnvironmentUser) DeleteUserHandler (w http.ResponseWriter, r *http.Re
 		return
 	}
 	//проверка и в случае таймута рефреш токена
-	resp := auth.CheckTokenAndRefresh(w, r, id)
-	if resp["status"] == false {
-		utils.Respond(w, resp)
-		return
-	}
+	//resp := auth.CheckTokenAndRefresh(w, r, id)
+	//if resp["status"] == false {
+	//	utils.Respond(w, resp)
+	//	return
+	//}
 
 	err = env.Db.DeleteUser(id)
 	if err != nil {
 		utils.Respond(w, utils.Message(false,"Database error","Internal Server Error"))
 		return
 	}
-	resp = utils.Message(true, "User deleted", "")
+	resp := utils.Message(true, "User deleted", "")
 	utils.Respond(w, resp)
 }
