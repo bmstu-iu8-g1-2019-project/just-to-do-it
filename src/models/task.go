@@ -7,13 +7,13 @@ type Task struct {
 	Title            string    `json:"title"`
 	Description      string    `json:"description"`
 	State            string    `json:"state"`
-	Deadline         int64 `json:"deadline"`
+	Deadline         int64     `json:"deadline"`
 	Priority         int       `json:"priority"`
 	CreationDatetime int64     `json:"creation_datetime"`
 	GroupId          int       `json:"group_id"`
 }
 
-type Tags struct {
+type Label struct {
 	Id     int    `json:"id"`
 	TaskId int    `json:"task_id"`
 	Title  string `json:"title"`

@@ -29,6 +29,13 @@ CREATE TABLE task_table (
     group_id int
 );
 
+CREATE TABLE label_table (
+    id SERIAL PRIMARY KEY UNIQUE,
+    task_id int,
+    title varchar(32),
+    color varchar(32)
+);
+
 CREATE TABLE group_table (
     id SERIAL PRIMARY KEY UNIQUE,
     title varchar(32),

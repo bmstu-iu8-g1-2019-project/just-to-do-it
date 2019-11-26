@@ -55,14 +55,14 @@ func ExtractRefreshToken(r *http.Request) string {
 	return ""
 }
 
-func TokenValid(w http.ResponseWriter, r *http.Request) error {
+func TokenValid(w http.ResponseWriter, r *http.Request, userId int) error {
 	//check acc token
 	tokenString := ExtractAccessToken(r)
 	// if acc token has expired
 	if tokenString == "" {
-		err := RefTokenValid(r)
+		err := RefTokenValid(r, userId)
 		if err != nil {
-			return fmt.Errorf("Session is over ")
+			return err
 		}
 		err = RefreshTokens(w, r)
 		if err != nil {
@@ -70,6 +70,7 @@ func TokenValid(w http.ResponseWriter, r *http.Request) error {
 		}
 		return nil
 	}
+
 	JwtSecret, _ := os.LookupEnv("secret")
 	JwtKey := []byte(JwtSecret)
 
@@ -82,21 +83,21 @@ func TokenValid(w http.ResponseWriter, r *http.Request) error {
 	if err != nil {
 		return err
 	}
-	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
-		fmt.Println("acc_token:")
-		fmt.Println(claims)
+	claims := token.Claims.(jwt.MapClaims)
+	userIdFromToken := int(claims["user_id"].(float64))
+	if userId != userIdFromToken {
+		return fmt.Errorf("Id don't match ")
 	}
-
 	return nil
 }
 
-func RefTokenValid(r *http.Request) error {
+func RefTokenValid(r *http.Request, userId int) error {
 	//check refresh token
 	tokenString := ExtractRefreshToken(r)
 	JwtSecret, _ := os.LookupEnv("secret")
 	JwtKey := []byte(JwtSecret)
 
-	_ , err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("Unexpected signing method: %v ", token.Header["alg"])
 		}
@@ -104,6 +105,11 @@ func RefTokenValid(r *http.Request) error {
 	})
 	if err != nil {
 		return err
+	}
+	claims := token.Claims.(jwt.MapClaims)
+	userIdFromToken := int(claims["user_id"].(float64))
+	if userId != userIdFromToken {
+		return fmt.Errorf("Id don't match ")
 	}
 	return nil
 }

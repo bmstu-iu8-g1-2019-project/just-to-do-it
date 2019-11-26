@@ -29,7 +29,8 @@ func main() {
 	}
 
 	envUser := &controllers.EnvironmentUser{Db: db}
-	//envTask := &controllers.EnvironmentTask{Db: db}
+	envTask := &controllers.EnvironmentTask{Db: db}
+	envGroup := &controllers.EnvironmentGroup{Db: db}
 
 	port := os.Getenv("PORT")
 	if port == "" {
@@ -38,17 +39,31 @@ func main() {
 
 	r := mux.NewRouter()
 
+	//user
 	r.HandleFunc("/register", envUser.ResponseRegisterHandler).Methods("POST")
 	r.HandleFunc("/login", envUser.ResponseLoginHandler).Methods("POST")
 	r.HandleFunc("/user/{id}", envUser.GetUserHandler).Methods("GET")
 	r.HandleFunc("/user/{id}", envUser.UpdateUserHandler).Methods("PUT")
 	r.HandleFunc("/user/{id}", envUser.DeleteUserHandler).Methods("DELETE")
 	r.HandleFunc("/confirm", envUser.ConfirmEmailHandler).Methods("GET")
-	//r.HandleFunc("/user/{id}/tasks", envTask.GetTasksHandler).Methods("GET")
-	//r.HandleFunc("/user/{id}/task/create", envTask.CreateTask).Methods("POST")
-	//r.HandleFunc("/user/{id}/task/{task_id}", envTask.GetTaskHandler).Methods("GET")
-	//r.HandleFunc("/user/{id}/task/{task_id}", envTask.UpdateTask).Methods("PUT")
-
+	//task
+	r.HandleFunc("/{id}/tasks", envTask.GetTasksHandler).Methods("GET")
+	r.HandleFunc("/{id}/task/create", envTask.CreateTask).Methods("POST")
+	r.HandleFunc("/{id}/task/{task_id}", envTask.GetTaskHandler).Methods("GET")
+	r.HandleFunc("/{id}/task/{task_id}", envTask.UpdateTaskHandler).Methods("PUT")
+	//label
+	r.HandleFunc("/{id}/task/{task_id}/label/create", envTask.CreateLabelHandler).Methods("POST")
+	r.HandleFunc("/{id}/label/{label_id}", envTask.GetLabelHandler).Methods("GET")
+	r.HandleFunc("/{id}/task/{task_id}/labels", envTask.GetLabelsByTaskIdHandler).Methods("GET")
+	r.HandleFunc("/{id}/label/{label_id}/color", envTask.UpdateLabelColorHandler).Methods("PUT")
+	r.HandleFunc("/{id}/label/{label_id}/title", envTask.UpdateLabelTitleHandler).Methods("PUT")
+	r.HandleFunc("/{id}/label/{label_id}", envTask.DeleteLabelHandler).Methods("DELETE")
+	//group
+	r.HandleFunc("/{id}/group/create", envGroup.CreateGroupHandler).Methods("POST")
+	r.HandleFunc("/{id}/group/{group_id}/task/create", envTask.CreateTask).Methods("POST")
+	r.HandleFunc("/{id}/group/{group_id}", envGroup.GetGroupHandler).Methods("GET")
+	r.HandleFunc("/{id}/group/{group_id}", envGroup.UpdateGroupHandler).Methods("PUT")
+	r.HandleFunc("/{id}/group/{group_id}", envGroup.DeleteGroupHandler).Methods("DELETE")
 
 	err = http.ListenAndServe(":" + port, r)
 	if err != nil {
