@@ -68,11 +68,7 @@ func (db *DB)UpdateLabelTitle(labelId int, title string) (label models.Label, er
 }
 
 func (db *DB)DeleteLabel(labelId int) error {
-	_, err := db.GetLabel(labelId)
-	if err != nil {
-		return err
-	}
-	_, err = db.Exec("DELETE  FROM label_table WHERE id = $1", labelId)
+	_, err := db.Exec("DELETE  FROM label_table WHERE id = $1", labelId)
 	if err != nil {
 		return err
 	}

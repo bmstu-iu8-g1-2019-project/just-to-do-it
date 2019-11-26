@@ -38,6 +38,19 @@ CREATE TABLE label_table (
 
 CREATE TABLE group_table (
     id SERIAL PRIMARY KEY UNIQUE,
-    title varchar(32),
+    title varchar(64),
     description varchar(128)
+);
+
+CREATE TABLE checklist_table (
+    id SERIAL PRIMARY KEY UNIQUE,
+    task_id int,
+    name varchar(64)
+);
+
+CREATE TABLE checklistItem_table (
+    id SERIAL PRIMARY KEY UNIQUE,
+    checklist_id int,
+    name varchar(64),
+    state varchar(32)
 );

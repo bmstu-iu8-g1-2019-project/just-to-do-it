@@ -64,6 +64,15 @@ func main() {
 	r.HandleFunc("/{id}/group/{group_id}", envGroup.GetGroupHandler).Methods("GET")
 	r.HandleFunc("/{id}/group/{group_id}", envGroup.UpdateGroupHandler).Methods("PUT")
 	r.HandleFunc("/{id}/group/{group_id}", envGroup.DeleteGroupHandler).Methods("DELETE")
+	//checklist
+	r.HandleFunc("/{id}/task/{task_id}/checklist/create", envTask.CreateChecklistHandler).Methods("POST")
+	r.HandleFunc("/{id}/checklist/{checklist_id}/item/create", envTask.CreateItemHandler).Methods("POST")
+	r.HandleFunc("/{id}/checklist/{checklist_id}", envTask.GetChecklistHandler).Methods("GET")
+	r.HandleFunc("/{id}/checklist/{checklist_id}", envTask.UpdateChecklistHandler).Methods("PUT")
+	r.HandleFunc("/{id}/checklist/{checklist_id}", envTask.DeleteChecklistHandler).Methods("DELETE")
+	r.HandleFunc("/{id}/checklist/{checklist_id}/items", envTask.GetChecklistItems).Methods("GET")
+	r.HandleFunc("/{id}/checklist/{checklist_id}/item/{item_id}", envTask.UpdateItemHandler).Methods("PUT")
+	r.HandleFunc("/{id}/item/{item_id}", envTask.DeleteItemHandler).Methods("DELETE")
 
 	err = http.ListenAndServe(":" + port, r)
 	if err != nil {

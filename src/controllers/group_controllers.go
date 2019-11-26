@@ -18,14 +18,8 @@ type EnvironmentGroup struct {
 }
 
 func (env *EnvironmentGroup)CreateGroupHandler(w http.ResponseWriter, r *http.Request) {
-	paramFromURL := mux.Vars(r)
-	userId, err := strconv.Atoi(paramFromURL["id"])
-	if err != nil {
-		utils.Respond(w, utils.Message(false,"Invalid id","Bad Request"))
-		return
-	}
-	//проверка и в случае таймута рефреш токена
-	err = auth.TokenValid(w, r, userId)
+	//проверка токена
+	_, err := auth.CheckUser(w, r)
 	if err != nil {
 		utils.Respond(w, utils.Message(false, err.Error(), "Unauthorized"))
 		return
@@ -53,19 +47,14 @@ func (env *EnvironmentGroup)CreateGroupHandler(w http.ResponseWriter, r *http.Re
 }
 
 func (env *EnvironmentGroup)GetGroupHandler(w http.ResponseWriter, r *http.Request) {
-	paramFromURL := mux.Vars(r)
-	userId, err := strconv.Atoi(paramFromURL["id"])
-	if err != nil {
-		utils.Respond(w, utils.Message(false,"Invalid id","Bad Request"))
-		return
-	}
-	//проверка и в случае таймута рефреш токена
-	err = auth.TokenValid(w, r, userId)
+	//проверка токена
+	_, err := auth.CheckUser(w, r)
 	if err != nil {
 		utils.Respond(w, utils.Message(false, err.Error(), "Unauthorized"))
 		return
 	}
 	//получение group_id
+	paramFromURL := mux.Vars(r)
 	groupId, err := strconv.Atoi(paramFromURL["group_id"])
 	if err != nil {
 		utils.Respond(w, utils.Message(false,"Invalid id","Bad Request"))
@@ -84,19 +73,14 @@ func (env *EnvironmentGroup)GetGroupHandler(w http.ResponseWriter, r *http.Reque
 }
 
 func (env *EnvironmentGroup)UpdateGroupHandler(w http.ResponseWriter, r *http.Request) {
-	paramFromURL := mux.Vars(r)
-	userId, err := strconv.Atoi(paramFromURL["id"])
-	if err != nil {
-		utils.Respond(w, utils.Message(false,"Invalid id","Bad Request"))
-		return
-	}
-	//проверка и в случае таймута рефреш токена
-	err = auth.TokenValid(w, r, userId)
+	//проверка токена
+	_, err := auth.CheckUser(w, r)
 	if err != nil {
 		utils.Respond(w, utils.Message(false, err.Error(), "Unauthorized"))
 		return
 	}
 	//получение group_id
+	paramFromURL := mux.Vars(r)
 	groupId, err := strconv.Atoi(paramFromURL["group_id"])
 	if err != nil {
 		utils.Respond(w, utils.Message(false,"Invalid id","Bad Request"))
@@ -127,19 +111,14 @@ func (env *EnvironmentGroup)UpdateGroupHandler(w http.ResponseWriter, r *http.Re
 }
 
 func (env *EnvironmentGroup)DeleteGroupHandler(w http.ResponseWriter, r *http.Request) {
-	paramFromURL := mux.Vars(r)
-	userId, err := strconv.Atoi(paramFromURL["id"])
-	if err != nil {
-		utils.Respond(w, utils.Message(false,"Invalid id","Bad Request"))
-		return
-	}
-	//проверка и в случае таймута рефреш токена
-	err = auth.TokenValid(w, r, userId)
+	//проверка токена
+	_, err := auth.CheckUser(w, r)
 	if err != nil {
 		utils.Respond(w, utils.Message(false, err.Error(), "Unauthorized"))
 		return
 	}
 	//получение group_id
+	paramFromURL := mux.Vars(r)
 	groupId, err := strconv.Atoi(paramFromURL["group_id"])
 	if err != nil {
 		utils.Respond(w, utils.Message(false,"Invalid id","Bad Request"))

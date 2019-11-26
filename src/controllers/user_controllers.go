@@ -2,15 +2,11 @@ package controllers
 
 import (
 	"encoding/json"
-	"net/http"
-	"strconv"
-
-	"github.com/gorilla/mux"
-
 	"github.com/bmstu-iu8-g1-2019-project/just-to-do-it/src/auth"
 	"github.com/bmstu-iu8-g1-2019-project/just-to-do-it/src/models"
 	"github.com/bmstu-iu8-g1-2019-project/just-to-do-it/src/services"
 	"github.com/bmstu-iu8-g1-2019-project/just-to-do-it/src/utils"
+	"net/http"
 )
 
 type EnvironmentUser struct {
@@ -105,15 +101,8 @@ func (env *EnvironmentUser) ConfirmEmailHandler (w http.ResponseWriter, r *http.
 }
 
 func (env *EnvironmentUser) GetUserHandler (w http.ResponseWriter, r *http.Request) {
-	// получение id из url
-	paramFromURL := mux.Vars(r)
-	id, err := strconv.Atoi(paramFromURL["id"])
-	if err != nil {
-		utils.Respond(w, utils.Message(false,"Invalid id","Bad Request"))
-		return
-	}
-	// проверка токена
-	err = auth.TokenValid(w, r, id)
+	//проверка токена
+	id, err := auth.CheckUser(w, r)
 	if err != nil {
 		utils.Respond(w, utils.Message(false, err.Error(), "Unauthorized"))
 		return
@@ -131,21 +120,14 @@ func (env *EnvironmentUser) GetUserHandler (w http.ResponseWriter, r *http.Reque
 }
 
 func (env *EnvironmentUser) UpdateUserHandler (w http.ResponseWriter, r *http.Request) {
-	user := models.User{}
-	// получаем из url id
-	paramFromURL := mux.Vars(r)
-	id, err := strconv.Atoi(paramFromURL["id"])
-	if err != nil {
-		utils.Respond(w, utils.Message(false,"Invalid id","Bad Request"))
-		return
-	}
-	// проверка токена
-	err = auth.TokenValid(w, r, id)
+	//проверка токена
+	id, err := auth.CheckUser(w, r)
 	if err != nil {
 		utils.Respond(w, utils.Message(false, err.Error(), "Unauthorized"))
 		return
 	}
 	// получаем из запроса структуру
+	user := models.User{}
 	err = json.NewDecoder(r.Body).Decode(&user)
 	if err != nil {
 		utils.Respond(w, utils.Message(false,"Invalid body","Bad Request"))
@@ -170,15 +152,8 @@ func (env *EnvironmentUser) UpdateUserHandler (w http.ResponseWriter, r *http.Re
 }
 
 func (env *EnvironmentUser) DeleteUserHandler (w http.ResponseWriter, r *http.Request) {
-	// получение id из url
-	paramFromURL := mux.Vars(r)
-	id, err := strconv.Atoi(paramFromURL["id"])
-	if err != nil {
-		utils.Respond(w, utils.Message(false,"Invalid id","Bad Request"))
-		return
-	}
-	// првоерка токена
-	err = auth.TokenValid(w, r, id)
+	//проверка токена
+	id, err := auth.CheckUser(w, r)
 	if err != nil {
 		utils.Respond(w, utils.Message(false, err.Error(), "Unauthorized"))
 		return

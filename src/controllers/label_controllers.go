@@ -13,20 +13,14 @@ import (
 )
 
 func (env *EnvironmentTask) CreateLabelHandler (w http.ResponseWriter, r *http.Request) {
-	//получение id пользователя
-	paramFromURL := mux.Vars(r)
-	id, err := strconv.Atoi(paramFromURL["id"])
-	if err != nil {
-		utils.Respond(w, utils.Message(false,"Invalid id","Bad Request"))
-		return
-	}
-	//проверка и в случае таймута рефреш токена
-	err = auth.TokenValid(w, r, id)
+	//проверка токена
+	_, err := auth.CheckUser(w, r)
 	if err != nil {
 		utils.Respond(w, utils.Message(false, err.Error(), "Unauthorized"))
 		return
 	}
 	//получение id задачи
+	paramFromURL := mux.Vars(r)
 	taskId, err := strconv.Atoi(paramFromURL["task_id"])
 	if err != nil {
 		utils.Respond(w, utils.Message(false,"Invalid id","Bad Request"))
@@ -53,20 +47,14 @@ func (env *EnvironmentTask) CreateLabelHandler (w http.ResponseWriter, r *http.R
 }
 
 func (env *EnvironmentTask)GetLabelHandler(w http.ResponseWriter, r *http.Request) {
-	//получение id пользователя
-	paramFromURL := mux.Vars(r)
-	id, err := strconv.Atoi(paramFromURL["id"])
-	if err != nil {
-		utils.Respond(w, utils.Message(false,"Invalid id","Bad Request"))
-		return
-	}
-	//проверка и в случае таймута рефреш токена
-	err = auth.TokenValid(w, r, id)
+	//проверка токена
+	_, err := auth.CheckUser(w, r)
 	if err != nil {
 		utils.Respond(w, utils.Message(false, err.Error(), "Unauthorized"))
 		return
 	}
 	//получние label_id
+	paramFromURL := mux.Vars(r)
 	labelId, err := strconv.Atoi(paramFromURL["label_id"])
 	if err != nil {
 		utils.Respond(w, utils.Message(false,"Invalid id","Bad Request"))
@@ -85,20 +73,14 @@ func (env *EnvironmentTask)GetLabelHandler(w http.ResponseWriter, r *http.Reques
 }
 
 func (env *EnvironmentTask)GetLabelsByTaskIdHandler(w http.ResponseWriter, r *http.Request) {
-	//получение id пользователя
-	paramFromURL := mux.Vars(r)
-	id, err := strconv.Atoi(paramFromURL["id"])
-	if err != nil {
-		utils.Respond(w, utils.Message(false,"Invalid id","Bad Request"))
-		return
-	}
-	//проверка и в случае таймута рефреш токена
-	err = auth.TokenValid(w, r, id)
+	//проверка токена
+	_, err := auth.CheckUser(w, r)
 	if err != nil {
 		utils.Respond(w, utils.Message(false, err.Error(), "Unauthorized"))
 		return
 	}
 	//получние task_id
+	paramFromURL := mux.Vars(r)
 	taskId, err := strconv.Atoi(paramFromURL["task_id"])
 	if err != nil {
 		utils.Respond(w, utils.Message(false,"Invalid id","Bad Request"))
@@ -117,20 +99,14 @@ func (env *EnvironmentTask)GetLabelsByTaskIdHandler(w http.ResponseWriter, r *ht
 }
 
 func (env *EnvironmentTask)UpdateLabelColorHandler(w http.ResponseWriter, r *http.Request) {
-	//получение id пользователя
-	paramFromURL := mux.Vars(r)
-	id, err := strconv.Atoi(paramFromURL["id"])
-	if err != nil {
-		utils.Respond(w, utils.Message(false,"Invalid id","Bad Request"))
-		return
-	}
-	//проверка и в случае таймута рефреш токена
-	err = auth.TokenValid(w, r, id)
+	//проверка токена
+	_, err := auth.CheckUser(w, r)
 	if err != nil {
 		utils.Respond(w, utils.Message(false, err.Error(), "Unauthorized"))
 		return
 	}
 	//получние label_id
+	paramFromURL := mux.Vars(r)
 	labelId, err := strconv.Atoi(paramFromURL["label_id"])
 	if err != nil {
 		utils.Respond(w, utils.Message(false,"Invalid id","Bad Request"))
@@ -156,20 +132,14 @@ func (env *EnvironmentTask)UpdateLabelColorHandler(w http.ResponseWriter, r *htt
 }
 
 func (env *EnvironmentTask)UpdateLabelTitleHandler(w http.ResponseWriter, r *http.Request) {
-	//получение id пользователя
-	paramFromURL := mux.Vars(r)
-	id, err := strconv.Atoi(paramFromURL["id"])
-	if err != nil {
-		utils.Respond(w, utils.Message(false,"Invalid id","Bad Request"))
-		return
-	}
-	//проверка и в случае таймута рефреш токена
-	err = auth.TokenValid(w, r, id)
+	//проверка токена
+	_, err := auth.CheckUser(w, r)
 	if err != nil {
 		utils.Respond(w, utils.Message(false, err.Error(), "Unauthorized"))
 		return
 	}
 	//получние label_id
+	paramFromURL := mux.Vars(r)
 	labelId, err := strconv.Atoi(paramFromURL["label_id"])
 	if err != nil {
 		utils.Respond(w, utils.Message(false,"Invalid id","Bad Request"))
@@ -195,20 +165,14 @@ func (env *EnvironmentTask)UpdateLabelTitleHandler(w http.ResponseWriter, r *htt
 }
 
 func (env *EnvironmentTask)DeleteLabelHandler(w http.ResponseWriter, r *http.Request) {
-	//получение id пользователя
-	paramFromURL := mux.Vars(r)
-	id, err := strconv.Atoi(paramFromURL["id"])
-	if err != nil {
-		utils.Respond(w, utils.Message(false,"Invalid id","Bad Request"))
-		return
-	}
-	//проверка и в случае таймута рефреш токена
-	err = auth.TokenValid(w, r, id)
+	//проверка токена
+	_, err := auth.CheckUser(w, r)
 	if err != nil {
 		utils.Respond(w, utils.Message(false, err.Error(), "Unauthorized"))
 		return
 	}
 	//получние label_id
+	paramFromURL := mux.Vars(r)
 	labelId, err := strconv.Atoi(paramFromURL["label_id"])
 	if err != nil {
 		utils.Respond(w, utils.Message(false,"Invalid id","Bad Request"))

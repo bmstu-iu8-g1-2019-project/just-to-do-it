@@ -19,14 +19,8 @@ type EnvironmentTask struct {
 
 // handle for getting tasks
 func(env *EnvironmentTask) GetTasksHandler(w http.ResponseWriter, r *http.Request) {
-	paramFromURL := mux.Vars(r)
-	userId, err := strconv.Atoi(paramFromURL["id"])
-	if err != nil {
-		utils.Respond(w, utils.Message(false,"Invalid id","Bad Request"))
-		return
-	}
-	//проверка и в случае таймута рефреш токена
-	err = auth.TokenValid(w, r, userId)
+	//проверка токена
+	userId, err := auth.CheckUser(w, r)
 	if err != nil {
 		utils.Respond(w, utils.Message(false, err.Error(), "Unauthorized"))
 		return
@@ -66,23 +60,17 @@ func(env *EnvironmentTask) GetTasksHandler(w http.ResponseWriter, r *http.Reques
 }
 
 func (env *EnvironmentTask)GetTaskHandler(w http.ResponseWriter, r *http.Request) {
-	//parse id
+	//проверка токена
+	userId, err := auth.CheckUser(w, r)
+	if err != nil {
+		utils.Respond(w, utils.Message(false, err.Error(), "Unauthorized"))
+		return
+	}
+	//parse task_id
 	paramFromURL := mux.Vars(r)
 	taskId, err := strconv.Atoi(paramFromURL["task_id"])
 	if err != nil {
 		utils.Respond(w, utils.Message(false,"Invalid id","Bad Request"))
-		return
-	}
-	userId, err := strconv.Atoi(paramFromURL["id"])
-	if err != nil {
-		utils.Respond(w, utils.Message(false,"Invalid id","Bad Request"))
-		return
-	}
-
-	//проверка и в случае таймута рефреш токена
-	err = auth.TokenValid(w, r, userId)
-	if err != nil {
-		utils.Respond(w, utils.Message(false, err.Error(), "Unauthorized"))
 		return
 	}
 	//
@@ -105,19 +93,15 @@ func (env *EnvironmentTask)GetTaskHandler(w http.ResponseWriter, r *http.Request
 }
 
 func (env *EnvironmentTask)CreateTask(w http.ResponseWriter, r *http.Request) {
-	paramFromURL := mux.Vars(r)
-	id, err := strconv.Atoi(paramFromURL["id"])
-	if err != nil {
-		utils.Respond(w, utils.Message(false,"Invalid id","Bad Request"))
-		return
-	}
-	groupId, _ := strconv.Atoi(paramFromURL["group_id"])
-	//проверка и в случае таймута рефреш токена
-	err = auth.TokenValid(w, r, id)
+	//проверка токена
+	id, err := auth.CheckUser(w, r)
 	if err != nil {
 		utils.Respond(w, utils.Message(false, err.Error(), "Unauthorized"))
 		return
 	}
+	//
+	paramFromURL := mux.Vars(r)
+	groupId, _ := strconv.Atoi(paramFromURL["group_id"])
 	//
 	task := models.Task{}
 	err = json.NewDecoder(r.Body).Decode(&task)
@@ -140,23 +124,20 @@ func (env *EnvironmentTask)CreateTask(w http.ResponseWriter, r *http.Request) {
 
 //update
 func (env *EnvironmentTask)UpdateTaskHandler(w http.ResponseWriter, r *http.Request) {
-	paramFromURL := mux.Vars(r)
-	userId, err := strconv.Atoi(paramFromURL["id"])
+	//проверка токена
+	userId, err := auth.CheckUser(w, r)
 	if err != nil {
-		utils.Respond(w, utils.Message(false,"Invalid id","Bad Request"))
+		utils.Respond(w, utils.Message(false, err.Error(), "Unauthorized"))
 		return
 	}
+	//
+	paramFromURL := mux.Vars(r)
 	taskId, err := strconv.Atoi(paramFromURL["task_id"])
 	if err != nil {
 		utils.Respond(w, utils.Message(false,"Invalid id","Bad Request"))
 		return
 	}
-	//проверка и в случае таймута рефреш токена
-	err = auth.TokenValid(w, r, userId)
-	if err != nil {
-		utils.Respond(w, utils.Message(false, err.Error(), "Unauthorized"))
-		return
-	}
+	//
 	task := models.Task{}
 	err = json.NewDecoder(r.Body).Decode(&task)
 	if err != nil {

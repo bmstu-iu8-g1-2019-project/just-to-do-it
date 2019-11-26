@@ -2,8 +2,10 @@ package auth
 
 import (
 	"fmt"
+	"github.com/gorilla/mux"
 	"net/http"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
@@ -160,4 +162,18 @@ func SetCookieForRefToken (w http.ResponseWriter, token string) {
 		Expires: expirationTime,
 		Path: "/",
 	})
+}
+
+func CheckUser(w http.ResponseWriter, r *http.Request) (int, error) {
+	paramFromURL := mux.Vars(r)
+	userId, err := strconv.Atoi(paramFromURL["id"])
+	if err != nil {
+		return 0, err
+	}
+	//проверка и в случае таймута рефреш токена
+	err = TokenValid(w, r, userId)
+	if err != nil {
+		return 0, err
+	}
+	return userId, nil
 }
