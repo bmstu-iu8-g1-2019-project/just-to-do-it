@@ -17,6 +17,8 @@ USER root
 WORKDIR $GOPATH/src/github.com/bmstu-iu8-g1-2019-project/just-to-do-it
 ADD ./ $GOPATH/src/github.com/bmstu-iu8-g1-2019-project/just-to-do-it
 
+RUN tree -L 4 ./
+
 RUN chmod +x ./scripts/*
 RUN ./scripts/build.sh
 

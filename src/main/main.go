@@ -2,22 +2,30 @@ package main
 
 import (
 	"fmt"
+	"github.com/gorilla/mux"
+	"github.com/joho/godotenv"
+	_ "github.com/lib/pq"
 	"log"
 	"net/http"
 	"time"
 
 	"github.com/bmstu-iu8-g1-2019-project/just-to-do-it/src/controllers"
 	"github.com/bmstu-iu8-g1-2019-project/just-to-do-it/src/services"
-	"github.com/gorilla/mux"
-	_ "github.com/lib/pq"
 )
 
 var (
-	FileName = "src/db/database.sql"
+	r = mux.NewRouter()
+	Filename = "src/db/init.sql"
+
 )
 
 func init() {
+	if err := godotenv.Load("vars.env"); err != nil {
+		log.Print("No vars.env file found")
+	}
 
+	config := services.ReadConfig()
+	fmt.Println(config)
 	fmt.Println("Connecting to database server...")
 
 	var db *services.DB
@@ -25,7 +33,7 @@ func init() {
 	timeout := time.After(time.Second * 16)
 	go func() {
 		for {
-			db, err := services.NewDB("postgres://docker:docker@todoapp_postgres:5432/todoapp?sslmode=disable")
+			db, err := services.NewDB(config)
 			if err != nil {
 				log.Println(err)
 				time.Sleep(time.Millisecond * 1500)
@@ -48,12 +56,13 @@ MAIN:
 			panic("timeout")
 		}
 	}
+	services.Setup(Filename, db)
 
 	fmt.Println("URA!")
 	envUser := &controllers.EnvironmentUser{db}
 	envTask := &controllers.EnvironmentTask{db}
 
-	r := mux.NewRouter()
+
 	r.Use(SetJSONHeader)
 
 	// r.HandleFunc("/user/task/{id}", envTask.GetTaskTIdHandler).Methods("GET")
@@ -71,7 +80,7 @@ MAIN:
 
 func main() {
 
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	log.Fatal(http.ListenAndServe(":8080", r))
 }
 
 func SetJSONHeader(h http.Handler) http.Handler {

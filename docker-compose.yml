@@ -1,24 +1,24 @@
 version: '3'
 
+volumes:
+  db: {}
 services:
   db:
     container_name: todoapp_postgres
     command: postgres -c listen_addresses='*'
-    build: src/db
+    build:
+      ./src/db/
     volumes:
-      - .tmp/db/pgdata:/pgdata
+      - db:/var/lib/postgresql
     environment:
      - POSTGRES_DB=todoapp
      - POSTGRES_USER=docker
      - POSTGRES_PASSWORD=docker
-     - PGDATA=/pgdata
     ports:
       - "5432:5432"
 
   app:
     build: .
-    # volumes:
-    #   - .:/go/src/github.com/bmstu-iu8-g1-2019-project/just-to-do-it/
     ports:
       - "80:8080"
     depends_on:

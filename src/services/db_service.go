@@ -15,6 +15,19 @@ type DB struct {
 	*sql.DB
 }
 
+func ReadConfig() (config string) {
+	DbDriver, _ := os.LookupEnv("DB_driver")
+	DbUsername, _ := os.LookupEnv("DB_username")
+	DbPassword, _ := os.LookupEnv("DB_password")
+	DbHost, _ := os.LookupEnv("DB_host")
+	DbPort, _ := os.LookupEnv("DB_port")
+	DbName, _ := os.LookupEnv("DB_name")
+	DbSslmode, _ := os.LookupEnv("DB_sslmode")
+
+	config = fmt.Sprintf("%s://%s:%s@%s:%s/%s?sslmode=%s",
+		DbDriver, DbUsername, DbPassword, DbHost, DbPort, DbName, DbSslmode)
+	return
+}
 func NewDB(dbSourceName string) (*DB, error) {
 	db, err := sql.Open("postgres", dbSourceName)
 	if err != nil {
@@ -28,7 +41,6 @@ func NewDB(dbSourceName string) (*DB, error) {
 	return &DB{db}, nil
 }
 
-// DO not working
 func Setup(filename string, db *DB) {
 	file, err := os.Open(filename)
 	if err != nil {
