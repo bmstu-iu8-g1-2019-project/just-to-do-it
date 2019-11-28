@@ -7,20 +7,11 @@ import (
 	"os"
 
 	"github.com/gorilla/mux"
-	"github.com/joho/godotenv"
+	_ "github.com/lib/pq"
 
 	"github.com/bmstu-iu8-g1-2019-project/just-to-do-it/src/controllers"
 	"github.com/bmstu-iu8-g1-2019-project/just-to-do-it/src/services"
-
-	_ "github.com/lib/pq"
 )
-
-func init() {
-	// loads values from .env into the system
-	if err := godotenv.Load(); err != nil {
-		log.Print("No .env file found")
-	}
-}
 
 func main() {
 	db, err := services.NewDB()
