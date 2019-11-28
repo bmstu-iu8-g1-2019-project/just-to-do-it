@@ -16,13 +16,13 @@ type DB struct {
 }
 
 func ReadConfig() (config string) {
-	DbDriver, _ := os.LookupEnv("DB_driver")
-	DbUsername, _ := os.LookupEnv("DB_username")
-	DbPassword, _ := os.LookupEnv("DB_password")
-	DbHost, _ := os.LookupEnv("DB_host")
-	DbPort, _ := os.LookupEnv("DB_port")
-	DbName, _ := os.LookupEnv("DB_name")
-	DbSslmode, _ := os.LookupEnv("DB_sslmode")
+	DbDriver := os.Getenv("DB_driver")
+	DbUsername := os.Getenv("DB_username")
+	DbPassword := os.Getenv("DB_password")
+	DbHost := os.Getenv("DB_host")
+	DbPort := os.Getenv("DB_port")
+	DbName := os.Getenv("DB_name")
+	DbSslmode := os.Getenv("DB_sslmode")
 
 	config = fmt.Sprintf("%s://%s:%s@%s:%s/%s?sslmode=%s",
 		DbDriver, DbUsername, DbPassword, DbHost, DbPort, DbName, DbSslmode)
