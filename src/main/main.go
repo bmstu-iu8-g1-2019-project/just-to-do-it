@@ -61,6 +61,7 @@ MAIN:
 
 	fmt.Println("URA!")
 	envUser := &controllers.EnvironmentUser{Db: db}
+	envTask := &controllers.EnvironmentTask{Db: db}
 
 	//user
 	r.HandleFunc("/register", envUser.ResponseRegisterHandler).Methods("POST")
@@ -69,6 +70,18 @@ MAIN:
 	r.HandleFunc("/user/{id}", envUser.UpdateUserHandler).Methods("PUT")
 	r.HandleFunc("/user/{id}", envUser.DeleteUserHandler).Methods("DELETE")
 	r.HandleFunc("/confirm", envUser.ConfirmEmailHandler).Methods("GET")
+	//task
+	r.HandleFunc("/{id}/tasks", envTask.GetTasksHandler).Methods("GET")
+	r.HandleFunc("/{id}/task/create", envTask.CreateTask).Methods("POST")
+	r.HandleFunc("/{id}/task/{task_id}", envTask.GetTaskHandler).Methods("GET")
+	r.HandleFunc("/{id}/task/{task_id}", envTask.UpdateTaskHandler).Methods("PUT")
+	//label
+	r.HandleFunc("/{id}/task/{task_id}/label/create", envTask.CreateLabelHandler).Methods("POST")
+	r.HandleFunc("/{id}/label/{label_id}", envTask.GetLabelHandler).Methods("GET")
+	r.HandleFunc("/{id}/task/{task_id}/labels", envTask.GetLabelsByTaskIdHandler).Methods("GET")
+	r.HandleFunc("/{id}/label/{label_id}/color", envTask.UpdateLabelColorHandler).Methods("PUT")
+	r.HandleFunc("/{id}/label/{label_id}/title", envTask.UpdateLabelTitleHandler).Methods("PUT")
+	r.HandleFunc("/{id}/label/{label_id}", envTask.DeleteLabelHandler).Methods("DELETE")
 }
 
 func main() {
