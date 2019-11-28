@@ -61,6 +61,7 @@ MAIN:
 
 	fmt.Println("URA!")
 	envUser := &controllers.EnvironmentUser{Db: db}
+	envGroup := &controllers.EnvironmentGroup{Db: db}
 
 	//user
 	r.HandleFunc("/register", envUser.ResponseRegisterHandler).Methods("POST")
@@ -69,6 +70,12 @@ MAIN:
 	r.HandleFunc("/user/{id}", envUser.UpdateUserHandler).Methods("PUT")
 	r.HandleFunc("/user/{id}", envUser.DeleteUserHandler).Methods("DELETE")
 	r.HandleFunc("/confirm", envUser.ConfirmEmailHandler).Methods("GET")
+	//group
+	r.HandleFunc("/{id}/group/create", envGroup.CreateGroupHandler).Methods("POST")
+	r.HandleFunc("/{id}/group/{group_id}/task/create", envTask.CreateTask).Methods("POST")
+	r.HandleFunc("/{id}/group/{group_id}", envGroup.GetGroupHandler).Methods("GET")
+	r.HandleFunc("/{id}/group/{group_id}", envGroup.UpdateGroupHandler).Methods("PUT")
+	r.HandleFunc("/{id}/group/{group_id}", envGroup.DeleteGroupHandler).Methods("DELETE")
 }
 
 func main() {
