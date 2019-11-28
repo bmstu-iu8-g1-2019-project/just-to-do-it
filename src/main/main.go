@@ -84,6 +84,15 @@ MAIN:
 	r.HandleFunc("/{id}/label/{label_id}/color", envTask.UpdateLabelColorHandler).Methods("PUT")
 	r.HandleFunc("/{id}/label/{label_id}/title", envTask.UpdateLabelTitleHandler).Methods("PUT")
 	r.HandleFunc("/{id}/label/{label_id}", envTask.DeleteLabelHandler).Methods("DELETE")
+	//checklist
+	r.HandleFunc("/{id}/task/{task_id}/checklist/create", envTask.CreateChecklistHandler).Methods("POST")
+	r.HandleFunc("/{id}/checklist/{checklist_id}/item/create", envTask.CreateItemHandler).Methods("POST")
+	r.HandleFunc("/{id}/checklist/{checklist_id}", envTask.GetChecklistHandler).Methods("GET")
+	r.HandleFunc("/{id}/checklist/{checklist_id}", envTask.UpdateChecklistHandler).Methods("PUT")
+	r.HandleFunc("/{id}/checklist/{checklist_id}", envTask.DeleteChecklistHandler).Methods("DELETE")
+	r.HandleFunc("/{id}/checklist/{checklist_id}/items", envTask.GetChecklistItems).Methods("GET")
+	r.HandleFunc("/{id}/checklist/{checklist_id}/item/{item_id}", envTask.UpdateItemHandler).Methods("PUT")
+	r.HandleFunc("/{id}/item/{item_id}", envTask.DeleteItemHandler).Methods("DELETE")
 }
 
 func main() {

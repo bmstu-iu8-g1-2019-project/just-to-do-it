@@ -15,6 +15,7 @@ type DatastoreTask interface {
 	UpdateTask(models.Task, int, int) (models.Task, error)
 	CreateTask(models.Task, int) (models.Task, error)
 	//DeleteTask(int) error
+	//
 	CreateLabel(models.Label, int) (models.Label, error)
 	GetLabelsByTaskId(int) ([]models.Label, error)
 	GetLabel(int) (models.Label, error)
@@ -22,15 +23,15 @@ type DatastoreTask interface {
 	UpdateLabelTitle(int, string) (models.Label, error)
 	DeleteLabel(int) error
 	//
-	//CreateChecklist(models.Checklist, int) (models.Checklist, error)
-	//CreateChecklistItem(models.ChecklistItem, int) (models.ChecklistItem, error)
-	//GetChecklist(int) (models.Checklist, []models.ChecklistItem, error)
-	//UpdateChecklist(int, models.Checklist) (models.Checklist, error)
-	//DeleteChecklist(int) error
-	//GetChecklistItems(int) ([]models.ChecklistItem, error)
-	//GetChecklistItem(int) (models.ChecklistItem, error)
-	//UpdateChecklistItem(int, int, models.ChecklistItem) (models.ChecklistItem, error)
-	//DeleteChecklistItem(int) error
+	CreateChecklist(models.Checklist, int) (models.Checklist, error)
+	CreateChecklistItem(models.ChecklistItem, int) (models.ChecklistItem, error)
+	GetChecklist(int) (models.Checklist, []models.ChecklistItem, error)
+	UpdateChecklist(int, models.Checklist) (models.Checklist, error)
+	DeleteChecklist(int) error
+	GetChecklistItems(int) ([]models.ChecklistItem, error)
+	GetChecklistItem(int) (models.ChecklistItem, error)
+	UpdateChecklistItem(int, int, models.ChecklistItem) (models.ChecklistItem, error)
+	DeleteChecklistItem(int) error
 }
 
 // input we get an array of values from url
