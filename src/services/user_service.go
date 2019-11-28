@@ -2,9 +2,11 @@ package services
 
 import (
 	"fmt"
-	"github.com/bmstu-iu8-g1-2019-project/just-to-do-it/src/models"
-	"golang.org/x/crypto/bcrypt"
 	"time"
+
+	"golang.org/x/crypto/bcrypt"
+
+	"github.com/bmstu-iu8-g1-2019-project/just-to-do-it/src/models"
 )
 
 type DatastoreUser interface {
@@ -18,7 +20,7 @@ type DatastoreUser interface {
 
 // The function checks the username and password that comes
 // from the request with the username and password that lies in the database
-func (db *DB)Login(login string, password string) (models.User, error) {
+func (db *DB) Login(login string, password string) (models.User, error) {
 	user := models.User{}
 	row := db.QueryRow("SELECT * FROM user_table WHERE login = $1", login)
 	err := row.Scan(&user.Id, &user.Email, &user.Login, &user.Fullname, &user.Password, &user.AccVerified)
@@ -32,7 +34,7 @@ func (db *DB)Login(login string, password string) (models.User, error) {
 	return user, nil
 }
 
-func (db *DB)Register(user models.User) (models.User, string, string) {
+func (db *DB) Register(user models.User) (models.User, string, string) {
 	if len(user.Password) < 6 {
 		return user, "Password must be more than 6 characters", "Bad Request"
 	}
@@ -65,7 +67,7 @@ func (db *DB)Register(user models.User) (models.User, string, string) {
 }
 
 // get the user structure by id
-func (db *DB) GetUser (id int) (models.User, error) {
+func (db *DB) GetUser(id int) (models.User, error) {
 	user := models.User{}
 	row := db.QueryRow("SELECT * FROM user_table WHERE id = $1", id)
 	err := row.Scan(&user.Id, &user.Email, &user.Login, &user.Fullname, &user.Password, &user.AccVerified)
@@ -77,9 +79,9 @@ func (db *DB) GetUser (id int) (models.User, error) {
 }
 
 //update user data
-func (db *DB) UpdateUser (id int, updateUser models.User) (models.User, error) {
+func (db *DB) UpdateUser(id int, updateUser models.User) (models.User, error) {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(updateUser.Password), 8)
-	_, err = db.Exec("UPDATE user_table SET email = $1, login = $2, fullname = $3," +
+	_, err = db.Exec("UPDATE user_table SET email = $1, login = $2, fullname = $3,"+
 		"password = $4 where id = $5", updateUser.Email,
 		updateUser.Login, updateUser.Fullname, hashedPassword, id)
 	if err != nil {
@@ -90,7 +92,7 @@ func (db *DB) UpdateUser (id int, updateUser models.User) (models.User, error) {
 	return updateUser, nil
 }
 
-func (db *DB) DeleteUser (id int) error {
+func (db *DB) DeleteUser(id int) error {
 	_, err := db.GetUser(id)
 	if err != nil {
 		return err

@@ -19,7 +19,7 @@ type DatastoreTask interface {
 
 // input we get an array of values from url
 // returns an array of objects of type Task
-func(db* DB) GetTasks(idSlice []int, title string, userId int) (tasks []models.Task ,err error) {
+func (db *DB) GetTasks(idSlice []int, title string, userId int) (tasks []models.Task, err error) {
 	queryMap := make(map[string]interface{})
 	if idSlice[0] != 0 {
 		queryMap["id"] = idSlice[0]
@@ -34,7 +34,7 @@ func(db* DB) GetTasks(idSlice []int, title string, userId int) (tasks []models.T
 		queryMap["title"] = title
 	}
 	if userId != 0 {
-		queryMap["creator_id"]= userId
+		queryMap["creator_id"] = userId
 	}
 	query := "SELECT id, creator_id, assignee_id, title, description, state, deadline, priority, creation_datetime, group_id FROM task_table WHERE "
 
@@ -48,7 +48,7 @@ func(db* DB) GetTasks(idSlice []int, title string, userId int) (tasks []models.T
 	}
 	//fmt.Println(query + strings.Join(where, " AND "))
 
-	rows, err := db.Query(query + strings.Join(where, " AND "), values...)
+	rows, err := db.Query(query+strings.Join(where, " AND "), values...)
 	if err != nil {
 		return tasks, err
 	}
@@ -71,7 +71,7 @@ func(db* DB) GetTasks(idSlice []int, title string, userId int) (tasks []models.T
 
 //create task
 func (db *DB) CreateTask(task models.Task) (models.Task, error) {
-	_, err := db.Exec("INSERT INTO task_table (creator_id, assignee_id, title, description, state, deadline, priority," +
+	_, err := db.Exec("INSERT INTO task_table (creator_id, assignee_id, title, description, state, deadline, priority,"+
 		"creation_datetime, group_id) values ($1, $2, $3, $4, $5, $6, $7, $8, $9)",
 		task.CreatorId, task.AssigneeId,
 		task.Title, task.Description,
@@ -82,5 +82,5 @@ func (db *DB) CreateTask(task models.Task) (models.Task, error) {
 	if err != nil {
 		return task, err
 	}
-	return task,nil
+	return task, nil
 }
