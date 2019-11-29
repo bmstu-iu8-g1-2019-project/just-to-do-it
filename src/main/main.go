@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
-	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 
 	"github.com/bmstu-iu8-g1-2019-project/just-to-do-it/src/controllers"
@@ -21,10 +20,6 @@ var (
 )
 
 func init() {
-	if err := godotenv.Load("vars.env"); err != nil {
-		log.Print("No vars.env file found")
-	}
-
 	config := services.ReadConfig()
 	fmt.Println(config)
 	fmt.Println("Connecting to database server...")

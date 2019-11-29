@@ -19,6 +19,14 @@ services:
 
   app:
     build: .
+    environment:
+     - DB_driver=${DB_driver}
+     - DB_username=${DB_username}
+     - DB_password=${DB_password}
+     - DB_host=${DB_host}
+     - DB_port=${DB_port}
+     - DB_name=${DB_name}
+     - DB_sslmode=${DB_sslmode}
     ports:
       - "80:8080"
     depends_on:
