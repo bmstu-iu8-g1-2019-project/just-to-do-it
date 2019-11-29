@@ -15,7 +15,7 @@ func CreateAccessToken(user_id int) (string, error) {
 	claims := jwt.MapClaims{}
 	claims["authorized"] = true
 	claims["user_id"] = user_id
-	claims["exp"] = time.Now().Add(time.Minute * 20).Unix() //Token expires after 1 hour
+	claims["exp"] = time.Now().Add(time.Minute * 20).Unix()
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	JwtSecret, _ := os.LookupEnv("secret")
 	JwtKey := []byte(JwtSecret)
@@ -26,7 +26,7 @@ func CreateRefreshToken(user_id int) (string, error) {
 	claims := jwt.MapClaims{}
 	claims["authorized"] = true
 	claims["user_id"] = user_id
-	claims["exp"] = time.Now().Add(time.Hour * 24 * 7).Unix() //Token expires after 1 hour
+	claims["exp"] = time.Now().Add(time.Hour * 24 * 7).Unix()
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	JwtSecret, _ := os.LookupEnv("secret")
 	JwtKey := []byte(JwtSecret)
