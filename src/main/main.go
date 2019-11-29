@@ -55,33 +55,18 @@ MAIN:
 	services.Setup(Filename, db)
 
 	fmt.Println("URA!")
-	envUser := &controllers.EnvironmentUser{db}
-	envTask := &controllers.EnvironmentTask{db}
+	envUser := &controllers.EnvironmentUser{Db: db}
 
-
-	r.Use(SetJSONHeader)
-
-	// r.HandleFunc("/user/task/{id}", envTask.GetTaskTIdHandler).Methods("GET")
-	// r.HandleFunc("/user/task/{assignee_id}", envTask.GetTasksAIdHandler).Methods("GET")
-	// r.HandleFunc("/user/task/{group_id}", envTask.GetTasksGIdHandler).Methods("GET")
-	r.HandleFunc("/user/task", envTask.CreateTask).Methods("POST")
-	// r.HandleFunc("/user/task/{id}", envTask.UpdateTask).Methods("PUT")
-	r.HandleFunc("/login", envUser.ResponseLoginHandler).Methods("GET")
+	//user
 	r.HandleFunc("/register", envUser.ResponseRegisterHandler).Methods("POST")
-	r.HandleFunc("/confirm", envUser.ConfirmEmailHandler).Methods("GET")
-	r.HandleFunc("/user/{id}", envUser.UpdateUserHandler).Methods("PUT")
+	r.HandleFunc("/login", envUser.ResponseLoginHandler).Methods("POST")
 	r.HandleFunc("/user/{id}", envUser.GetUserHandler).Methods("GET")
+	r.HandleFunc("/user/{id}", envUser.UpdateUserHandler).Methods("PUT")
 	r.HandleFunc("/user/{id}", envUser.DeleteUserHandler).Methods("DELETE")
+	r.HandleFunc("/confirm", envUser.ConfirmEmailHandler).Methods("GET")
 }
 
 func main() {
 
 	log.Fatal(http.ListenAndServe(":8080", r))
-}
-
-func SetJSONHeader(h http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/json; charset=utf-8")
-		h.ServeHTTP(w, r)
-	})
 }

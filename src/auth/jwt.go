@@ -1,116 +1,173 @@
 package auth
 
 import (
+	"fmt"
 	"net/http"
+	"os"
+	"strconv"
 	"time"
 
+	"github.com/gorilla/mux"
 	"github.com/dgrijalva/jwt-go"
-
-	"github.com/bmstu-iu8-g1-2019-project/just-to-do-it/src/models"
-	"github.com/bmstu-iu8-g1-2019-project/just-to-do-it/src/utils"
 )
 
-//TODO: refactor this awesome way to store the secret
-var JwtKey = []byte("secret")
-
-//JWT authority structure
-type Token struct {
-	UserId int
-	jwt.StandardClaims
+func CreateAccessToken(user_id int) (string, error) {
+	claims := jwt.MapClaims{}
+	claims["authorized"] = true
+	claims["user_id"] = user_id
+	claims["exp"] = time.Now().Add(time.Minute * 20).Unix() //Token expires after 1 hour
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	JwtSecret, _ := os.LookupEnv("secret")
+	JwtKey := []byte(JwtSecret)
+	return token.SignedString(JwtKey)
 }
 
+func CreateRefreshToken(user_id int) (string, error) {
+	claims := jwt.MapClaims{}
+	claims["authorized"] = true
+	claims["user_id"] = user_id
+	claims["exp"] = time.Now().Add(time.Hour * 24 * 7).Unix() //Token expires after 1 hour
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	JwtSecret, _ := os.LookupEnv("secret")
+	JwtKey := []byte(JwtSecret)
+	return token.SignedString(JwtKey)
+}
 
-func JwtAuth(claims Token, tokenStr string) (Token, map[string] interface{}) {
-	tkn, err := jwt.ParseWithClaims(tokenStr, &claims, func(token *jwt.Token) (interface{}, error){
+func ExtractAccessToken(r *http.Request) string {
+	c, err := r.Cookie("access_token")
+	if err != nil {
+		return ""
+	}
+	token := c.Value
+	return token
+}
+
+func ExtractRefreshToken(r *http.Request) string {
+	c, err := r.Cookie("refresh_token")
+	if err != nil {
+		return ""
+	}
+	token := c.Value
+	return token
+}
+
+func TokenValid(w http.ResponseWriter, r *http.Request, userId int) error {
+	//check acc token
+	tokenString := ExtractAccessToken(r)
+	// if acc token has expired
+	if tokenString == "" {
+		err := RefTokenValid(r, userId)
+		if err != nil {
+			return err
+		}
+		err = RefreshTokens(w, r)
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+
+	JwtSecret, _ := os.LookupEnv("secret")
+	JwtKey := []byte(JwtSecret)
+
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("Unexpected signing method: %v ", token.Header["alg"])
+		}
 		return JwtKey, nil
 	})
 	if err != nil {
-		if err == jwt.ErrSignatureInvalid {
-			return claims, utils.Message(false, "Invalid Signature", "Unauthorized")
-		}
-		return claims,  utils.Message(false, err.Error(),"Bad Request")
+		return err
 	}
-	if !tkn.Valid {
-		return claims, utils.Message(false, "Invalid token","Unauthorized")
+	claims := token.Claims.(jwt.MapClaims)
+	userIdFromToken := int(claims["user_id"].(float64))
+	if userId != userIdFromToken {
+		return fmt.Errorf("Id don't match ")
 	}
-	return claims, nil
-}
-
-func CreateTokenAndSetCookie(w http.ResponseWriter, user models.User) map[string] interface{} {
-	//Setting session time
-	expirationTime := time.Now().Add(1 * time.Minute)
-	//Create token JWT
-	tk := &Token{
-		UserId: user.Id,
-		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: expirationTime.Unix(),
-		},
-	}
-	//Token generation
-	token := jwt.NewWithClaims(jwt.GetSigningMethod("HS256"), tk)
-	//Get the complete, signed token
-	tokenString, err := token.SignedString(JwtKey)
-	if err != nil {
-		return utils.Message(false, "","Internal Server Error")
-	}
-	http.SetCookie(w, &http.Cookie{
-		Name: "token",
-		Value: tokenString,
-		Expires: expirationTime,
-	})
 	return nil
 }
 
-func RefreshToken(claims Token) (tokenStr string, resp map[string] interface{}) {
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	tokenStr, err := token.SignedString(JwtKey)
+func RefTokenValid(r *http.Request, userId int) error {
+	//check refresh token
+	tokenString := ExtractRefreshToken(r)
+	JwtSecret, _ := os.LookupEnv("secret")
+	JwtKey := []byte(JwtSecret)
+
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("Unexpected signing method: %v ", token.Header["alg"])
+		}
+		return JwtKey, nil
+	})
 	if err != nil {
-		return tokenStr, utils.Message(false, "refresh token error","Unauthorized")
+		return err
 	}
-	return tokenStr, nil
+	claims := token.Claims.(jwt.MapClaims)
+	userIdFromToken := int(claims["user_id"].(float64))
+	if userId != userIdFromToken {
+		return fmt.Errorf("Id don't match ")
+	}
+	return nil
 }
 
-func CheckTokenAndRefresh(w http.ResponseWriter, r *http.Request, id int) map[string] interface{}{
-	//getting a token from cookies
-	c, err := r.Cookie("token")
+func RefreshTokens (w http.ResponseWriter, r *http.Request) error {
+	refTokenStr := ExtractRefreshToken(r)
+	JwtSecret, _ := os.LookupEnv("secret")
+	JwtKey := []byte(JwtSecret)
+	token, err := jwt.Parse(refTokenStr, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("Unexpected signing method: %v ", token.Header["alg"])
+		}
+		return JwtKey, nil
+	})
 	if err != nil {
-		if err == http.ErrNoCookie {
-			return utils.Message(false, "No cookie","Unauthorized")
-		}
-		return utils.Message(false,"Cookie error","Bad Request")
+		return err
 	}
-
-	tknStr := c.Value
-	claims := Token{}
-	//check token and setting parameters
-	claims, resp := JwtAuth(claims, tknStr)
-	if resp != nil {
-		return resp
+	claims := token.Claims.(jwt.MapClaims)
+	userId := int(claims["user_id"].(float64))
+	accToken, err := CreateAccessToken(userId)
+	if err != nil {
+		return err
 	}
-
-	//refresh token if expiration time < 30sec
-	if time.Unix(claims.ExpiresAt, 0).Sub(time.Now()) < 30 * time.Second {
-		//update time
-		expirationTime := time.Now().Add(1 * time.Minute)
-		claims.ExpiresAt = expirationTime.Unix()
-		// generate new token
-		tknStr, resp = RefreshToken(claims)
-		if resp != nil {
-			return resp
-		}
-
-		http.SetCookie(w, &http.Cookie{
-			Name: "token",
-			Value: tknStr,
-			Expires: expirationTime,
-		})
+	SetCookieForAccToken(w, accToken)
+	refTokenStr, err = CreateRefreshToken(userId)
+	if err != nil {
+		return err
 	}
+	SetCookieForRefToken(w, refTokenStr)
+	return nil
+}
 
-	//check id in url and id in cookies
-	if claims.UserId != id {
-		return utils.Message(false,"id do not match","Unauthorized")
+func SetCookieForAccToken (w http.ResponseWriter, token string) {
+	expirationTime := time.Now().Add(1 * time.Minute)
+	http.SetCookie(w, &http.Cookie{
+		Name: "access_token",
+		Value: token,
+		Expires: expirationTime,
+		Path: "/",
+	})
+}
+
+func SetCookieForRefToken (w http.ResponseWriter, token string) {
+	expirationTime := time.Now().Add(24 * time.Hour)
+	http.SetCookie(w, &http.Cookie{
+		Name: "refresh_token",
+		Value: token,
+		Expires: expirationTime,
+		Path: "/",
+	})
+}
+
+func CheckUser(w http.ResponseWriter, r *http.Request) (int, error) {
+	paramFromURL := mux.Vars(r)
+	userId, err := strconv.Atoi(paramFromURL["id"])
+	if err != nil {
+		return 0, err
 	}
-	resp = utils.Message(true, "Check token", "")
-	resp["token"] = claims
-	return resp
+	//проверка и в случае таймута рефреш токена
+	err = TokenValid(w, r, userId)
+	if err != nil {
+		return 0, err
+	}
+	return userId, nil
 }
