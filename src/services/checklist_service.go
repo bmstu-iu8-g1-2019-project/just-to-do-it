@@ -7,9 +7,8 @@ import(
 )
 
 func (db *DB)CreateChecklist(checklist models.Checklist, taskId int) (models.Checklist, error) {
-	query := "INSERT INTO checklist_table (task_id, name) values ('%d', '%s')  RETURNING id"
-	query = fmt.Sprintf(query, taskId, checklist.Name)
-	err := db.QueryRow(query).Scan(&checklist.Id)
+	err := db.QueryRow("INSERT INTO checklist_table (task_id, name) values ($1, $2)  RETURNING id",
+		taskId, checklist.Name).Scan(&checklist.Id)
 	if err != nil {
 		return models.Checklist{}, err
 	}
@@ -18,10 +17,8 @@ func (db *DB)CreateChecklist(checklist models.Checklist, taskId int) (models.Che
 }
 
 func (db *DB)CreateChecklistItem(item models.ChecklistItem, checklistId int) (models.ChecklistItem, error) {
-	query := "INSERT INTO checklistItem_table (checklist_id, name, state)" +
-		" values ('%d', '%s', '%s')  RETURNING id"
-	query = fmt.Sprintf(query, checklistId, item.Name, item.State)
-	err := db.QueryRow(query).Scan(&item.Id)
+	err := db.QueryRow("INSERT INTO checklistItem_table (checklist_id, name, state) values ($1, $2, $3)  RETURNING id",
+		checklistId, item.Name, item.State).Scan(&item.Id)
 	if err != nil {
 		return models.ChecklistItem{}, err
 	}
