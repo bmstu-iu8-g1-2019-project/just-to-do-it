@@ -14,9 +14,8 @@ type DatastoreGroup interface {
 }
 
 func (db *DB)CreateGroup(group models.Group) (models.Group, error) {
-	query := "INSERT INTO group_table (title, description) values ('%s', '%s')  RETURNING id"
-	query = fmt.Sprintf(query, group.Title, group.Description)
-	err := db.QueryRow(query).Scan(&group.Id)
+	err := db.QueryRow("INSERT INTO group_table (title, description) values ($1, $2)  RETURNING id",
+		group.Title, group.Description).Scan(&group.Id)
 	if err != nil {
 		return models.Group{}, err
 	}
