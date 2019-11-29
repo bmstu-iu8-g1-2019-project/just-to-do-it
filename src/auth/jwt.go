@@ -15,7 +15,7 @@ func CreateAccessToken(user_id int) (string, error) {
 	claims := jwt.MapClaims{}
 	claims["authorized"] = true
 	claims["user_id"] = user_id
-	claims["exp"] = time.Now().Add(time.Minute * 1).Unix() //Token expires after 1 hour
+	claims["exp"] = time.Now().Add(time.Minute * 20).Unix() //Token expires after 1 hour
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	JwtSecret, _ := os.LookupEnv("secret")
 	JwtKey := []byte(JwtSecret)
@@ -26,7 +26,7 @@ func CreateRefreshToken(user_id int) (string, error) {
 	claims := jwt.MapClaims{}
 	claims["authorized"] = true
 	claims["user_id"] = user_id
-	claims["exp"] = time.Now().Add(time.Hour * 24).Unix() //Token expires after 1 hour
+	claims["exp"] = time.Now().Add(time.Hour * 24 * 7).Unix() //Token expires after 1 hour
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	JwtSecret, _ := os.LookupEnv("secret")
 	JwtKey := []byte(JwtSecret)
@@ -39,10 +39,7 @@ func ExtractAccessToken(r *http.Request) string {
 		return ""
 	}
 	token := c.Value
-	if token != "" {
-		return token
-	}
-	return ""
+	return token
 }
 
 func ExtractRefreshToken(r *http.Request) string {
@@ -51,10 +48,7 @@ func ExtractRefreshToken(r *http.Request) string {
 		return ""
 	}
 	token := c.Value
-	if token != "" {
-		return token
-	}
-	return ""
+	return token
 }
 
 func TokenValid(w http.ResponseWriter, r *http.Request, userId int) error {
