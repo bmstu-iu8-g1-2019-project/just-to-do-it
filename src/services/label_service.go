@@ -5,8 +5,8 @@ import (
 )
 
 func (db *DB)CreateLabel(label models.Label, taskId int) (models.Label, error) {
-	query := "INSERT INTO label_table (task_id, title, color) values ($1, $2, $3) RETURNING id"
-	err := db.QueryRow(query, taskId, label.Title, label.Color).Scan(&label.Id)
+	err := db.QueryRow("INSERT INTO label_table (task_id, title, color) values ($1, $2, $3) RETURNING id",
+		taskId, label.Title, label.Color).Scan(&label.Id)
 	if err != nil {
 		return models.Label{}, err
 	}
