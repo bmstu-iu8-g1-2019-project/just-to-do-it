@@ -1,15 +1,12 @@
 package services
 
 import (
-	"fmt"
-
 	"github.com/bmstu-iu8-g1-2019-project/just-to-do-it/src/models"
 )
 
 func (db *DB)CreateLabel(label models.Label, taskId int) (models.Label, error) {
-	query := "INSERT INTO label_table (task_id, title, color) values ('%d','%s','%s') RETURNING id"
-	query = fmt.Sprintf(query, taskId, label.Title, label.Color)
-	err := db.QueryRow(query).Scan(&label.Id)
+	query := "INSERT INTO label_table (task_id, title, color) values ($1, $2, $3) RETURNING id"
+	err := db.QueryRow(query, taskId, label.Title, label.Color).Scan(&label.Id)
 	if err != nil {
 		return models.Label{}, err
 	}

@@ -101,10 +101,9 @@ func (db *DB) GetTaskById (id int) (task models.Task, labels []models.Label, err
 //create task
 func (db *DB) CreateTask(task models.Task, userId int) (models.Task, error) {
 	query := "INSERT INTO task_table (creator_id, assignee_id, title, description, state, deadline, priority, creation_datetime, group_id)" +
-		"values ('%d', '%d', '%s', '%s', '%s', '%d', '%d', '%d', '%d')  RETURNING id"
-	query = fmt.Sprintf(query, userId, task.AssigneeId, task.Title, task.Description, task.State,
-		task.Deadline, task.Priority, time.Now().Unix(), task.GroupId)
-	err := db.QueryRow(query).Scan(&task.Id)
+		"values ($1, $2, $3, $4, $5, $6, $7, $8, $9)  RETURNING id"
+	err := db.QueryRow(query,userId, task.AssigneeId, task.Title, task.Description, task.State,
+		task.Deadline, task.Priority, time.Now().Unix(), task.GroupId).Scan(&task.Id)
 	if err != nil {
 		return models.Task{}, err
 	}
