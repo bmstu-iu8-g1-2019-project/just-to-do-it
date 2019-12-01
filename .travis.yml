@@ -10,11 +10,8 @@ jobs:
   include:
     - name: "E2E test"
       script:
-        - docker-compose build
-        - docker-compose up -d
-        - export DB_host=localhost
-        - go test tests/user_test.go
-        - docker-compose down
+        - sh scripts/build_and_up
+        - sh scripts/gotest.sh
 
 notifications:
   email: false
