@@ -1,0 +1,21 @@
+os: linux
+
+sudo: required
+
+services: docker
+
+language: go
+
+jobs:
+  include:
+    - name: "Build"
+      script:
+        - docker-compose build
+        - docker-compose up -d
+    - name: "E2E test"
+      script:
+        - export DB_host=localhost
+        - go test tests/user_test.go
+
+notifications:
+  email: false

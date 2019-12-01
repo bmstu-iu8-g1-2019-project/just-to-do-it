@@ -1,4 +1,7 @@
-
+drop table if exists user_table cascade;
+drop table if exists auth_confirmation cascade;
+drop table if exists group_table cascade;
+drop table if exists label_table cascade;
 
 CREATE TABLE if not exists user_table (
     id SERIAL PRIMARY KEY UNIQUE,
