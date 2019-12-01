@@ -22,12 +22,13 @@ func TestRegisterHandler(t *testing.T) {
 
 	body := []byte(`{"email":"d_kokin@inbox.ru", "login":"dan_kokin", "password":"password"}`)
 
-	request, err := http.NewRequest("GET", "/register", bytes.NewBuffer(body))
+	request, err := http.NewRequest("POST", "/register", bytes.NewBuffer(body))
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	rr := httptest.NewRecorder()
+
 	handler := http.HandlerFunc(env.ResponseRegisterHandler)
 
 	handler.ServeHTTP(rr, request)
