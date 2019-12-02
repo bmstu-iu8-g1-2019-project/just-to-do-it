@@ -44,11 +44,8 @@ func (db *DB)Register(user models.User) (models.User, string, string) {
 	if user.Fullname == "" {
 		user.Fullname = user.Login
 	}
-	query := "INSERT INTO user_table (email, login, fullname, password, acc_verified)" +
-		"values ('%s', '%s', '%s', '%s', false)  RETURNING id"
-	query = fmt.Sprintf(query, user.Email, user.Login, user.Fullname, hashedPassword)
-
-	err = db.QueryRow(query).Scan(&user.Id)
+	err = db.QueryRow("INSERT INTO user_table (email, login, fullname, password, acc_verified) values ($1, $2, $3, $4, false)  RETURNING id",
+		user.Email, user.Login, user.Fullname, hashedPassword).Scan(&user.Id)
 	if err != nil {
 		return models.User{}, "Query error", "Internal Server Error"
 	}
