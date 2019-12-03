@@ -25,10 +25,9 @@ CREATE TABLE if not exists task_table (
     title varchar(128),
     description varchar(128),
     state varchar(32),
-    deadline int,
-    duration int,
+    deadline TIMESTAMP WITH TIME ZONE,
     priority int,
-    creation_datetime int,
+    creation_datetime TIMESTAMP WITH TIME ZONE,
     group_id int
 );
 
@@ -43,4 +42,17 @@ CREATE TABLE if not exists label_table (
     task_id int,
     title varchar(32),
     color varchar(32)
+);
+
+CREATE TABLE if not exists track_table (
+    id SERIAL PRIMARY KEY UNIQUE,
+    title varchar(32),
+    description varchar(128),
+    group_id int
+);
+
+CREATE TABLE if not exists track_task_previous (
+    task_id int UNIQUE,
+    previous_id int,
+    track_id int
 );
