@@ -53,7 +53,7 @@ func(db* DB) GetTasks(idSlice []int, title string, userId int) (tasks []models.T
 	if userId != 0 {
 		queryMap["creator_id"]= userId
 	}
-	query := "SELECT id, creator_id, assignee_id, title, description, state, deadline, priority, creation_datetime, group_id FROM task_table WHERE "
+	query := "SELECT id, creator_id, assignee_id, title, description, state, deadline, duration, priority, creation_datetime, group_id FROM task_table WHERE "
 
 	var values []interface{}
 	var where []string
@@ -74,7 +74,7 @@ func(db* DB) GetTasks(idSlice []int, title string, userId int) (tasks []models.T
 	for rows.Next() {
 		task := &models.Task{}
 		err = rows.Scan(&task.Id, &task.CreatorId, &task.AssigneeId, &task.Title, &task.Description,
-			&task.State, &task.Deadline, &task.Priority, &task.CreationDatetime,
+			&task.State, &task.Deadline, &task.Duration, &task.Priority, &task.CreationDatetime,
 			&task.GroupId)
 		if err != nil {
 			return []models.Task{}, err
@@ -88,7 +88,7 @@ func(db* DB) GetTasks(idSlice []int, title string, userId int) (tasks []models.T
 func (db *DB) GetTaskById (id int) (task models.Task, labels []models.Label, err error) {
 	row := db.QueryRow("SELECT * FROM task_table WHERE id = $1", id)
 	err = row.Scan(&task.Id, &task.CreatorId, &task.AssigneeId, &task.Title, &task.Description,
-		&task.State, &task.Deadline, &task.Priority, &task.CreationDatetime, &task.GroupId)
+		&task.State, &task.Deadline, &task.Duration, &task.Priority, &task.CreationDatetime, &task.GroupId)
 	if err != nil {
 		return models.Task{}, []models.Label{}, err
 	}
@@ -101,10 +101,10 @@ func (db *DB) GetTaskById (id int) (task models.Task, labels []models.Label, err
 
 //create task
 func (db *DB) CreateTask(task models.Task, userId int) (models.Task, error) {
-	err := db.QueryRow("INSERT INTO task_table (creator_id, assignee_id, title, description, state, deadline," +
-		"priority, creation_datetime, group_id) values ($1, $2, $3, $4, $5, $6, $7, $8, $9)  RETURNING id",
+	err := db.QueryRow("INSERT INTO task_table (creator_id, assignee_id, title, description, state, deadline, duration, " +
+		"priority, creation_datetime, group_id) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)  RETURNING id",
 		userId, task.AssigneeId, task.Title, task.Description, task.State,
-		task.Deadline, task.Priority, time.Now().Unix(), task.GroupId).Scan(&task.Id)
+		task.Deadline, task.Duration, task.Priority, time.Now().Unix(), task.GroupId).Scan(&task.Id)
 	if err != nil {
 		return models.Task{}, err
 	}
@@ -126,9 +126,9 @@ func (db *DB) UpdateTask(UpdateTask models.Task, taskId int, userId int) (models
 	}
 	//
 	_, err = db.Exec("UPDATE task_table SET assignee_id = $1, title = $2, description = $3, state = $4, deadline = $5," +
-		" priority = $6 where id = $7",
+		" duration = $6, priority = $7 where id = $8",
 		UpdateTask.AssigneeId, UpdateTask.Title, UpdateTask.Description, UpdateTask.State,
-		UpdateTask.Deadline, UpdateTask.Priority, taskId)
+		UpdateTask.Deadline, UpdateTask.Duration, UpdateTask.Priority, taskId)
 	if err != nil {
 		return models.Task{}, err
 	}
@@ -138,5 +138,6 @@ func (db *DB) UpdateTask(UpdateTask models.Task, taskId int, userId int) (models
 	task.Deadline = UpdateTask.Deadline
 	task.Priority = UpdateTask.Priority
 	task.AssigneeId = UpdateTask.AssigneeId
+	task.Duration = UpdateTask.Duration
 	return task,nil
 }

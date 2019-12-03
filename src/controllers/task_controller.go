@@ -50,7 +50,7 @@ func(env *EnvironmentTask) GetTasksHandler(w http.ResponseWriter, r *http.Reques
 	//функция возвращает таски по параметрам переданым в url
 	tasks, err := env.Db.GetTasks(idSlice, title, userId)
 	if err != nil {
-		utils.Respond(w, utils.Message(false,"db error", "Internal Server Error"))
+		utils.Respond(w, utils.Message(false, err.Error(), "Internal Server Error"))
 		return
 	}
 	//формирование ответа
@@ -147,7 +147,7 @@ func (env *EnvironmentTask)UpdateTaskHandler(w http.ResponseWriter, r *http.Requ
 	//проверка тела запроса
 	if  task.Title == "" || task.Description == "" ||
 		task.Deadline == 0 || task.State == "" ||
-		task.Priority == 0 || task.AssigneeId == 0 {
+		task.Priority == 0 || task.AssigneeId == 0 || task.Duration == 0 {
 		utils.Respond(w, utils.Message(false,"Invalid body", "Bad Request"))
 		return
 	}

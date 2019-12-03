@@ -8,6 +8,7 @@ type Task struct {
 	Description      string    `json:"description"`
 	State            string    `json:"state"`
 	Deadline         int64     `json:"deadline"`
+	Duration         int64     `json:"duration"`
 	Priority         int       `json:"priority"`
 	CreationDatetime int64     `json:"creation_datetime"`
 	GroupId          int       `json:"group_id"`
