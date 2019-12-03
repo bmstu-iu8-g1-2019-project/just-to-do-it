@@ -2,17 +2,17 @@ package services
 
 import (
 	"fmt"
-	"golang.org/x/crypto/bcrypt"
 	"net/smtp"
+	"os"
 	"time"
+
+	"golang.org/x/crypto/bcrypt"
 
 	"github.com/bmstu-iu8-g1-2019-project/just-to-do-it/src/models"
 	)
 
 const (
 	url = "\nlocalhost:3000/confirm?hash="
-	from = "kolesnikov.school4@gmail.com"
-	pass = "Proektk2019"
 	msgConst = "\nFrom :%s\nTo: %s\nPlease confirm your email: %s"
 )
 
@@ -57,6 +57,8 @@ func (db *DB) sendMail(login string) (err error) {
 	if err != nil {
 		return err
 	}
+	from, _ := os.LookupEnv("from")
+	pass, _ := os.LookupEnv("pass")
 	msg := fmt.Sprintf(msgConst, from, user.Email, url + obj.Hash)
 
 	err = smtp.SendMail("smtp.gmail.com:587",
