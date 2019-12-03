@@ -57,7 +57,7 @@ MAIN:
 	fmt.Println("URA!")
 	envUser := &controllers.EnvironmentUser{Db: db}
 	envGroup := &controllers.EnvironmentGroup{Db: db}
-	envTask := &controllers.EnvironmentTask{Db: db
+	envTask := &controllers.EnvironmentTask{Db: db}
 
 	//user
 	r.HandleFunc("/register", envUser.ResponseRegisterHandler).Methods("POST")

@@ -1,0 +1,17 @@
+os: linux
+
+sudo: required
+
+services: docker
+
+language: go
+
+jobs:
+  include:
+    - name: "E2E test"
+      script:
+        - sh scripts/build_and_up.sh
+        - sh scripts/gotest.sh
+
+notifications:
+  email: false

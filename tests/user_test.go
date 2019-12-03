@@ -1,128 +1,106 @@
 package tests
 
 import (
-	"github.com/bmstu-iu8-g1-2019-project/just-to-do-it/src/controllers"
-	"github.com/bmstu-iu8-g1-2019-project/just-to-do-it/src/models"
-	"github.com/bmstu-iu8-g1-2019-project/just-to-do-it/src/services"
-	"golang.org/x/crypto/bcrypt"
-	"gotest.tools/assert"
+	"bytes"
+	"net/http"
+	"net/http/httptest"
 	"testing"
+
+	"github.com/bmstu-iu8-g1-2019-project/just-to-do-it/src/controllers"
+	"github.com/bmstu-iu8-g1-2019-project/just-to-do-it/src/services"
 )
 
-type mockDB struct {
-	DB services.DatastoreUser
+type TestData struct {
+	Body []byte
+	Method string
+	URL string
+	Status int
 }
 
-var (
-	expectedUser1 = models.User{
-		Id:	1,
-		Email: "dk@mail.ru",
-		Login: "dk",
-		Fullname: "Dan Kokin",
-		Password: "pass",
-		AccVerified: true,
-	}
-
-	expectedUser2 = models.User{
-		Id:	2,
-		Email: "dk@mail.ru",
-		Login: "dk",
-		Fullname: "Dan Kokin",
-		Password: "pass",
-		AccVerified: true,
-	}
-
-	expectedUser3 = models.User{
-		Id:	42,
-		Email: "dk@mail.ru",
-		Login: "dk",
-		Fullname: "Dan Kokin",
-		Password: "pass",
-		AccVerified: true,
-	}
-)
-
-func TestGetUser (t *testing.T) {
-	users := make([]models.User, 0)
-	users = append(users, expectedUser1)
-	users = append(users, expectedUser2)
-	users = append(users, expectedUser3)
-
-	dbTest, _ := services.NewMockGetDB(users)
-	defer dbTest.Close()
-
-	env := controllers.EnvironmentUser{dbTest}
-
-	user, err := env.Db.GetUser(1)
-	assert.Equal(t, user, expectedUser1)
-	assert.Equal(t, err, nil)
-
-	user, err = env.Db.GetUser(2)
-	assert.Equal(t, user, expectedUser2)
-	assert.Equal(t, err, nil)
-
-	user, err = env.Db.GetUser(3)
-	assert.Equal(t, user, models.User{})
+func NewTestData(body []byte, method string, url string, status int) TestData {
+	return TestData{Body: body, Method: method, URL: url, Status: status}
 }
 
-func TestLogin(t *testing.T) {
-	users := make([]models.User, 0)
-	users = append(users, expectedUser1)
-	users = append(users, expectedUser2)
-	users = append(users, expectedUser3)
+var g_Data = make([]TestData, 0)
 
-	passwords := make([]string, 0)
-	for i := range users {
-		hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(users[i].Password), 8)
-		passwords = append(passwords, string(hashedPassword))
+func init() {
+	// Case 1. Correct request, code 200
+	body1 := []byte(`{
+		"email":"d_kokin@inbox.ru",
+		"login":"dan_kokin",
+		"password":"password"}`)
+
+	// Case 2. Invalid body. Code 400
+	body2 := []byte(`{
+		"email":d_kokin2@inbox.ru",
+		"login":"dan_kokin2",
+		"password":"password2"}`)
+
+	// Case 3. Invalid login
+	body3 := []byte(`{
+		"email":"d_kokin3@inbox.ru",
+		"login":"",
+		"password":"password"}`)
+
+	// Case 4. Invalid password (quantity < 6)
+	body4 := []byte(`{
+		"email":"d_kokin3@inbox.ru",
+		"login":"testuser4",
+		"password":"pass"}`)
+
+	// Case 5. Reinsert by mail
+	body5 := []byte(`{
+		"email":"d_kokin@inbox.ru",
+		"login":"dan_kokin",
+		"password":"password"}`)
+
+	// Case 6. Reinsert by login
+	body6 := []byte(`{
+		"email":"d_kok1n@inbox.ru",
+		"login":"dan_kokin",
+		"password":"password"}`)
+
+	user1 := NewTestData(body1, "POST", "/register", http.StatusOK)
+	user2 := NewTestData(body2, "POST", "/register", http.StatusBadRequest)
+	user3 := NewTestData(body3, "POST", "/register", http.StatusBadRequest)
+	user4 := NewTestData(body4, "POST", "/register", http.StatusBadRequest)
+	user5 := NewTestData(body5, "POST", "/register", http.StatusInternalServerError)
+	user6 := NewTestData(body6, "POST", "/register", http.StatusInternalServerError)
+
+	g_Data = append(g_Data, user1, user2, user3, user4, user5, user6)
+
+}
+
+func CheckRequestStatus(data TestData, handlerFunc http.HandlerFunc, t *testing.T) {
+	request, err:= http.NewRequest(data.Method, data.URL, bytes.NewBuffer(data.Body))
+	if err != nil {
+		t.Fatal(err)
 	}
-	dbTest, _ := services.NewMockLoginDB(users, passwords)
-	defer dbTest.Close()
 
-	env := controllers.EnvironmentUser{dbTest}
+	rr := httptest.NewRecorder()
+	handler := http.HandlerFunc(handlerFunc)
+	handler.ServeHTTP(rr, request)
 
-	err := env.Db.Login(expectedUser1.Login, expectedUser1.Password)
-	assert.Equal(t, err, nil)
-
-	err = env.Db.Login(expectedUser2.Login, expectedUser2.Password)
-	assert.Equal(t, err, nil)
-
-	err = env.Db.Login(expectedUser3.Login, expectedUser3.Fullname)
-	if err == nil {
-		assert.Error(t, err, "Test failed!")
+	if status := rr.Code; status != data.Status {
+		t.Log(string(data.Body))
+		t.Errorf("Handler returned wrong status code: got %v want %v",
+			status, data.Status)
 	}
 }
 
-func TestDeleteUser(t *testing.T)  {
-	users := make([]models.User, 0)
-	users = append(users, expectedUser1)
-	users = append(users, expectedUser2)
-	users = append(users, expectedUser3)
+func TestUserHandlers(t *testing.T) {
+	config := services.ReadConfig()
 
-	ids := make([]int, 0)
-	ids = append(ids, 1)
-	ids = append(ids, 2)
-	ids = append(ids, 42)
-
-	dbTest, _ := services.NewMockDeleteDB(users, ids)
-	defer dbTest.Close()
-
-	env := controllers.EnvironmentUser{dbTest}
-
-
-	err := env.Db.DeleteUser(1)
-	assert.Equal(t, err, nil)
-
-	err = env.Db.DeleteUser(2)
-	assert.Equal(t, err, nil)
-
-	err = env.Db.DeleteUser(24)
-	if err == nil {
-		assert.Error(t, err, "Test failed!")
+	db, err := services.NewDB(config)
+	if err != nil {
+		t.Fatal("Did not connected to database")
 	}
-}
+	env := controllers.EnvironmentUser{db}
 
-func TestGetUserHandler(t *testing.T) {
-
+	for index, value := range g_Data {
+		t.Log("Case № ", index)
+		CheckRequestStatus(value, env.ResponseRegisterHandler, t)
+		t.Log(" Success\n")
+	}
 }
 
