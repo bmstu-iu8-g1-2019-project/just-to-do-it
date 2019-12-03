@@ -2,7 +2,9 @@ package controllers
 
 import (
 	"encoding/json"
+	"github.com/gorilla/mux"
 	"net/http"
+	"strconv"
 
 	"github.com/bmstu-iu8-g1-2019-project/just-to-do-it/src/auth"
 	"github.com/bmstu-iu8-g1-2019-project/just-to-do-it/src/models"
@@ -121,10 +123,11 @@ func (env *EnvironmentUser) GetUserHandler (w http.ResponseWriter, r *http.Reque
 }
 
 func (env *EnvironmentUser) UpdateUserHandler (w http.ResponseWriter, r *http.Request) {
-	//проверка токена
-	id, err := auth.CheckUser(w, r)
+	// Получение id пользователя
+	paramFromURL := mux.Vars(r)
+	id, err := strconv.Atoi(paramFromURL["id"])
 	if err != nil {
-		utils.Respond(w, utils.Message(false, err.Error(), "Unauthorized"))
+		utils.Respond(w, utils.Message(false,"Invalid id","Bad Request"))
 		return
 	}
 	// получаем из запроса структуру
@@ -153,16 +156,17 @@ func (env *EnvironmentUser) UpdateUserHandler (w http.ResponseWriter, r *http.Re
 }
 
 func (env *EnvironmentUser) DeleteUserHandler (w http.ResponseWriter, r *http.Request) {
-	//проверка токена
-	id, err := auth.CheckUser(w, r)
+	// Получение id пользователя
+	paramFromURL := mux.Vars(r)
+	id, err := strconv.Atoi(paramFromURL["id"])
 	if err != nil {
-		utils.Respond(w, utils.Message(false, err.Error(), "Unauthorized"))
+		utils.Respond(w, utils.Message(false,"Invalid id","Bad Request"))
 		return
 	}
 	// удаление из бд пользователя
 	err = env.Db.DeleteUser(id)
 	if err != nil {
-		utils.Respond(w, utils.Message(false,"Database error","Internal Server Error"))
+		utils.Respond(w, utils.Message(false,err.Error(),"Internal Server Error"))
 		return
 	}
 	// формирование ответа

@@ -90,7 +90,15 @@ func (db *DB) UpdateUser (id int, updateUser models.User) (models.User, error) {
 }
 
 func (db *DB) DeleteUser (id int) error {
-	_, err := db.Exec("DELETE FROM user_table WHERE id = $1", id)
+	user, err := db.GetUser(id)
+	if err != nil {
+		return err
+	}
+	_, err = db.Exec("DELETE FROM user_table WHERE id = $1", id)
+	if err != nil {
+		return err
+	}
+	_, err = db.Exec("DELETE FROM auth_confirmation WHERE login = $1", user.Login)
 	if err != nil {
 		return err
 	}

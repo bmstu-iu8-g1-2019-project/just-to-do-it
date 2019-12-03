@@ -7,18 +7,11 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"github.com/bmstu-iu8-g1-2019-project/just-to-do-it/src/auth"
 	"github.com/bmstu-iu8-g1-2019-project/just-to-do-it/src/models"
 	"github.com/bmstu-iu8-g1-2019-project/just-to-do-it/src/utils"
 )
 
 func (env *EnvironmentTask)CreateChecklistHandler(w http.ResponseWriter, r *http.Request) {
-	//проверка токена
-	_, err := auth.CheckUser(w, r)
-	if err != nil {
-		utils.Respond(w, utils.Message(false, err.Error(), "Unauthorized"))
-		return
-	}
 	//получение task_id из url
 	paramFromURL := mux.Vars(r)
 	taskId, err := strconv.Atoi(paramFromURL["task_id"])
@@ -46,12 +39,6 @@ func (env *EnvironmentTask)CreateChecklistHandler(w http.ResponseWriter, r *http
 }
 
 func (env *EnvironmentTask)CreateItemHandler(w http.ResponseWriter, r *http.Request) {
-	//проверка токена
-	_, err := auth.CheckUser(w, r)
-	if err != nil {
-		utils.Respond(w, utils.Message(false, err.Error(), "Unauthorized"))
-		return
-	}
 	//получение checklist_id из url
 	paramFromURL := mux.Vars(r)
 	checklistId, err := strconv.Atoi(paramFromURL["checklist_id"])
@@ -79,12 +66,6 @@ func (env *EnvironmentTask)CreateItemHandler(w http.ResponseWriter, r *http.Requ
 }
 
 func (env *EnvironmentTask)GetChecklistHandler(w http.ResponseWriter, r *http.Request) {
-	//проверка токена
-	_, err := auth.CheckUser(w, r)
-	if err != nil {
-		utils.Respond(w, utils.Message(false, err.Error(), "Unauthorized"))
-		return
-	}
 	//получение checklist_id из url
 	paramFromURL := mux.Vars(r)
 	checklistId, err := strconv.Atoi(paramFromURL["checklist_id"])
@@ -106,12 +87,6 @@ func (env *EnvironmentTask)GetChecklistHandler(w http.ResponseWriter, r *http.Re
 }
 
 func (env *EnvironmentTask)UpdateChecklistHandler(w http.ResponseWriter, r *http.Request) {
-	//проверка токена
-	_, err := auth.CheckUser(w, r)
-	if err != nil {
-		utils.Respond(w, utils.Message(false, err.Error(), "Unauthorized"))
-		return
-	}
 	//получение checklist_id из url
 	paramFromURL := mux.Vars(r)
 	checklistId, err := strconv.Atoi(paramFromURL["checklist_id"])
@@ -143,12 +118,6 @@ func (env *EnvironmentTask)UpdateChecklistHandler(w http.ResponseWriter, r *http
 }
 
 func (env *EnvironmentTask)DeleteChecklistHandler(w http.ResponseWriter, r *http.Request) {
-	//проверка токена
-	_, err := auth.CheckUser(w, r)
-	if err != nil {
-		utils.Respond(w, utils.Message(false, err.Error(), "Unauthorized"))
-		return
-	}
 	//получение checklist_id из url
 	paramFromURL := mux.Vars(r)
 	checklistId, err := strconv.Atoi(paramFromURL["checklist_id"])
@@ -166,12 +135,6 @@ func (env *EnvironmentTask)DeleteChecklistHandler(w http.ResponseWriter, r *http
 }
 
 func (env *EnvironmentTask)GetChecklistItems(w http.ResponseWriter, r *http.Request) {
-	//проверка токена
-	_, err := auth.CheckUser(w, r)
-	if err != nil {
-		utils.Respond(w, utils.Message(false, err.Error(), "Unauthorized"))
-		return
-	}
 	//получение checklist_id из url
 	paramFromURL := mux.Vars(r)
 	checklistId, err := strconv.Atoi(paramFromURL["checklist_id"])
@@ -192,12 +155,6 @@ func (env *EnvironmentTask)GetChecklistItems(w http.ResponseWriter, r *http.Requ
 }
 
 func (env *EnvironmentTask)UpdateItemHandler(w http.ResponseWriter, r *http.Request) {
-	//проверка токена
-	_, err := auth.CheckUser(w, r)
-	if err != nil {
-		utils.Respond(w, utils.Message(false, err.Error(), "Unauthorized"))
-		return
-	}
 	//получение checklist_id и item_id из url
 	paramFromURL := mux.Vars(r)
 	checklistId, err := strconv.Atoi(paramFromURL["checklist_id"])
@@ -230,12 +187,6 @@ func (env *EnvironmentTask)UpdateItemHandler(w http.ResponseWriter, r *http.Requ
 }
 
 func (env *EnvironmentTask)DeleteItemHandler(w http.ResponseWriter, r *http.Request) {
-	//проверка токена
-	_, err := auth.CheckUser(w, r)
-	if err != nil {
-		utils.Respond(w, utils.Message(false, err.Error(), "Unauthorized"))
-		return
-	}
 	//получение item_id из url
 	paramFromURL := mux.Vars(r)
 	itemId, err := strconv.Atoi(paramFromURL["item_id"])
