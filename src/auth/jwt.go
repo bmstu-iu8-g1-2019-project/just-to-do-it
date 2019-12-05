@@ -177,10 +177,10 @@ func CheckUser(w http.ResponseWriter, r *http.Request) (int, error) {
 var JwtCheck = func(next http.Handler) http.Handler {
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request){
-		notAuth := []string{"/register", "/login"} //Список эндпоинтов, для которых не требуется авторизация
-		requestPath := r.URL.Path //текущий путь запроса
+		notAuth := []string{"/register", "/login"} // List of endpoints for which authorization is not required
+		requestPath := r.URL.Path // Current request path
 
-		//проверяем, не требует ли запрос аутентификации, обслуживаем запрос, если он не нужен
+		// We check if the authentication request does not require, we serve the request if it is not needed
 		for _, value := range notAuth {
 
 			if value == requestPath {
@@ -195,7 +195,7 @@ var JwtCheck = func(next http.Handler) http.Handler {
 			utils.Respond(w, utils.Message(false, err.Error(), "Unauthorized"))
 			return
 		}
-		//проверка и в случае таймута рефреш токена
+		// Check and in case of timeout refresh token
 		err = TokenValid(w, r, userId)
 		if err != nil {
 			utils.Respond(w, utils.Message(false, err.Error(), "Unauthorized"))
