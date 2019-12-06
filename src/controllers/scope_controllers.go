@@ -16,29 +16,46 @@ type EnvironmentScope struct {
 	Db services.DatastoreScope
 }
 
-func (env *EnvironmentScope)CreateScope(w http.ResponseWriter, r* http.Request) {
+func (env *EnvironmentScope)CreateScopeHandler(w http.ResponseWriter, r* http.Request) {
+	// Получение user_id и group_id
 	paramsFromURL := mux.Vars(r)
 	id, err := strconv.Atoi(paramsFromURL["id"])
 	if err != nil {
 		utils.Respond(w, utils.Message(false,"Bad parameters", "Bad Request"))
 		return
 	}
-
+	groupId, err := strconv.Atoi(paramsFromURL["group_id"])
+	if err != nil {
+		utils.Respond(w, utils.Message(false, "Bad parameters", ""))
+		return
+	}
+	// Получение тела запроса и проверка
 	scope := models.Scope{}
 	err = json.NewDecoder(r.Body).Decode(&scope)
 	if err != nil {
 		utils.Respond(w, utils.Message(false,"Invalid body", "Bad Request"))
 		return
 	}
-
-	scope, err = env.Db.CreateScope(id, scope)
+	scope.CreatorId = id
+	scope.GroupId = groupId
+	err = models.ValidTimetable(scope)
 	if err != nil {
-		utils.Respond(w, utils.Message(false,err.Error(), "Internal Server Error"))
+		utils.Respond(w, utils.Message(false,"Invalid body", "Bad Request"))
 		return
 	}
+	// Запись в бд
+	scope, err = env.Db.CreateScope(scope)
+	if err != nil {
+		utils.Respond(w, utils.Message(false, err.Error(), "Internal Server Error"))
+		return
+	}
+	// Формирование ответа
+	resp := utils.Message(true, "Created scope", "")
+	resp["scope"] = scope
+	utils.Respond(w, resp)
 }
 
-func (env *EnvironmentScope)GetScopeHandler(w http.ResponseWriter, r *http.Request) {
+func (env *EnvironmentScope)GetScopesHandler(w http.ResponseWriter, r *http.Request) {
 	id := r.URL.Query().Get("id")
 	creatorId := r.URL.Query().Get("creator_id")
 	groupId := r.URL.Query().Get("group_id")
@@ -73,7 +90,7 @@ func (env *EnvironmentScope)GetScopeHandler(w http.ResponseWriter, r *http.Reque
 
 func (env *EnvironmentScope)UpdateScopeHandler(w http.ResponseWriter, r *http.Request) {
 	paramFromURL := mux.Vars(r)
-	id, err := strconv.Atoi(paramFromURL["id"])
+	id, err := strconv.Atoi(paramFromURL["scope_id"])
 	if err != nil {
 		utils.Respond(w, utils.Message(false, "Invalid id", "Bad Request"))
 		return
@@ -86,14 +103,14 @@ func (env *EnvironmentScope)UpdateScopeHandler(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	if scope.Id <= 0 || scope.GroupId <= 0 || scope.BeginInterval <= 0 || scope.EndInterval <= 0 {
+	if  scope.GroupId <= 0 || scope.BeginInterval <= 0 || scope.EndInterval <= 0 {
 		utils.Respond(w, utils.Message(false,"Invalid body","Bad Request"))
 		return
 	}
 
 	scope, err = env.Db.UpdateScope(id, scope)
 	if err != nil {
-		utils.Respond(w, utils.Message(false, "Database error", "Internal Server Error"))
+		utils.Respond(w, utils.Message(false, err.Error(), "Internal Server Error"))
 		return
 	}
 
@@ -102,12 +119,12 @@ func (env *EnvironmentScope)UpdateScopeHandler(w http.ResponseWriter, r *http.Re
 	utils.Respond(w, resp)
 }
 
-func (env *EnvironmentScope) DeleteUserHandler (w http.ResponseWriter, r *http.Request) {
+func (env *EnvironmentScope) DeleteScopeHandler (w http.ResponseWriter, r *http.Request) {
 	paramFromURL := mux.Vars(r)
-	id, err := strconv.Atoi(paramFromURL["id"])
+	id, err := strconv.Atoi(paramFromURL["scope_id"])
 	err = env.Db.DeleteScope(id)
 	if err != nil {
-		utils.Respond(w, utils.Message(false,"Database error","Internal Server Error"))
+		utils.Respond(w, utils.Message(false, err.Error(),"Internal Server Error"))
 		return
 	}
 	resp := utils.Message(true, "Scope deleted", "")
