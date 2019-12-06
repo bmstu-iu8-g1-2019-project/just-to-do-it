@@ -12,11 +12,33 @@ import (
 	"github.com/bmstu-iu8-g1-2019-project/just-to-do-it/src/utils"
 )
 
-type EnvironmentTimeTable struct {
-	Db services.DatastoreTimeTable
+type EnvironmentScope struct {
+	Db services.DatastoreScope
 }
 
-func (env *EnvironmentTimeTable)GetTimetableHandler(w http.ResponseWriter, r *http.Request) {
+func (env *EnvironmentScope)CreateScope(w http.ResponseWriter, r* http.Request) {
+	paramsFromURL := mux.Vars(r)
+	id, err := strconv.Atoi(paramsFromURL["id"])
+	if err != nil {
+		utils.Respond(w, utils.Message(false,"Bad parameters", "Bad Request"))
+		return
+	}
+
+	scope := models.Scope{}
+	err = json.NewDecoder(r.Body).Decode(&scope)
+	if err != nil {
+		utils.Respond(w, utils.Message(false,"Invalid body", "Bad Request"))
+		return
+	}
+
+	scope, err = env.Db.CreateScope(id, scope)
+	if err != nil {
+		utils.Respond(w, utils.Message(false,err.Error(), "Internal Server Error"))
+		return
+	}
+}
+
+func (env *EnvironmentScope)GetScopeHandler(w http.ResponseWriter, r *http.Request) {
 	id := r.URL.Query().Get("id")
 	creatorId := r.URL.Query().Get("creator_id")
 	groupId := r.URL.Query().Get("group_id")
@@ -38,18 +60,18 @@ func (env *EnvironmentTimeTable)GetTimetableHandler(w http.ResponseWriter, r *ht
 		}
 	}
 
-	tables, err := env.Db.GetTimetables(params)
+	scopes, err := env.Db.GetScopes(params)
 	if err != nil {
 		utils.Respond(w, utils.Message(false, err.Error(), "Internal Server Error"))
 		return
 	}
 
-	resp := utils.Message(true, "Got timetables!", "")
-	resp["timetables"] = tables
+	resp := utils.Message(true, "Got scopes!", "")
+	resp["scopes"] = scopes
 	utils.Respond(w, resp)
 }
 
-func (env *EnvironmentTimeTable)UpdateTimetableHandler(w http.ResponseWriter, r *http.Request) {
+func (env *EnvironmentScope)UpdateScopeHandler(w http.ResponseWriter, r *http.Request) {
 	paramFromURL := mux.Vars(r)
 	id, err := strconv.Atoi(paramFromURL["id"])
 	if err != nil {
@@ -57,37 +79,37 @@ func (env *EnvironmentTimeTable)UpdateTimetableHandler(w http.ResponseWriter, r 
 		return
 	}
 
-	table := models.Timetable{}
-	err = json.NewDecoder(r.Body).Decode(&table)
+	scope := models.Scope{}
+	err = json.NewDecoder(r.Body).Decode(&scope)
 	if err != nil {
 		utils.Respond(w, utils.Message(false, "Invalid body", "Bad Request"))
 		return
 	}
 
-	if table.Id <= 0 || table.GroupId <= 0 || table.BeginInterval <= 0 || table.EndInterval <= 0 {
+	if scope.Id <= 0 || scope.GroupId <= 0 || scope.BeginInterval <= 0 || scope.EndInterval <= 0 {
 		utils.Respond(w, utils.Message(false,"Invalid body","Bad Request"))
 		return
 	}
 
-	table, err = env.Db.UpdateTimetable(id, table)
+	scope, err = env.Db.UpdateScope(id, scope)
 	if err != nil {
 		utils.Respond(w, utils.Message(false, "Database error", "Internal Server Error"))
 		return
 	}
 
-	resp := utils.Message(true, "Update timetable", "")
-	resp["timetable"] = table
+	resp := utils.Message(true, "Update scope", "")
+	resp["scope"] = scope
 	utils.Respond(w, resp)
 }
 
-func (env *EnvironmentTimeTable) DeleteUserHandler (w http.ResponseWriter, r *http.Request) {
+func (env *EnvironmentScope) DeleteUserHandler (w http.ResponseWriter, r *http.Request) {
 	paramFromURL := mux.Vars(r)
 	id, err := strconv.Atoi(paramFromURL["id"])
-	err = env.Db.DeleteTimetable(id)
+	err = env.Db.DeleteScope(id)
 	if err != nil {
 		utils.Respond(w, utils.Message(false,"Database error","Internal Server Error"))
 		return
 	}
-	resp := utils.Message(true, "Timetable deleted", "")
+	resp := utils.Message(true, "Scope deleted", "")
 	utils.Respond(w, resp)
 }
