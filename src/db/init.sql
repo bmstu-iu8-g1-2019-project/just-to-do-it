@@ -70,10 +70,15 @@ CREATE TABLE if not exists checklistItem_table (
     state varchar(32)
 );
 
-CREATE TABLE if not exists timetable (
+CREATE TABLE if not exists scope (
     id SERIAL PRIMARY KEY UNIQUE,
     creator_id int,
     group_id int,
     begin_interval int,
     end_interval int
+);
+
+CREATE TABLE if not exists timetable (
+    scope_id int,
+    task_id int
 );

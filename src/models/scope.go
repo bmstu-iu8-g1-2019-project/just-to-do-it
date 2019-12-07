@@ -12,6 +12,11 @@ type Scope struct {
 	EndInterval   int64 `json:"end_interval"`
 }
 
+type Timetable struct {
+	ScopeId int `json:"scope_id"`
+	TaskId  int `json:"task_id"`
+}
+
 func ValidTimetable(scope Scope) (err error) {
 	if  scope.CreatorId == 0 ||
 		scope.GroupId == 0 ||
