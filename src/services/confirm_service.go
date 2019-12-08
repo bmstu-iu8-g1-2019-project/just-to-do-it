@@ -12,7 +12,7 @@ import (
 	)
 
 const (
-	url = "\nlocalhost:3000/confirm?hash="
+	url = "\njtdi.ru/confirm?hash="
 	msgConst = "\nFrom :%s\nTo: %s\nPlease confirm your email: %s"
 )
 
