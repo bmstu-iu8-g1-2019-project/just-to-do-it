@@ -2,6 +2,7 @@ package services
 
 import (
 	"fmt"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -17,8 +18,8 @@ type DatastoreScope interface {
 	GetScope(int) (models.Scope, error)
 	GetScopesWithInterval(int, int) ([]models.Scope, error)
 	GetTasksFromScope(scopeId int) (tasks []models.Task, err error)
-
 	AddTaskInScope(scopeId int, taskId int) (timetable models.Timetable, err error)
+	CreateSmartScope(int) (models.Timetable, error)
 }
 
 func (db *DB)CreateScope(scope models.Scope) (models.Scope, error) {
@@ -210,4 +211,58 @@ func (db *DB)GetScope(scopeId int) (scope models.Scope, err error) {
 		return models.Scope{}, err
 	}
 	return scope, nil
+}
+
+func (db *DB)CreateSmartScope(id int)(table []models.Task, err error) {
+	row := db.QueryRow("SELECT * FROM scope WHERE id = $1", id)
+
+	scope := models.Scope{}
+	err = row.Scan(&scope.Id, &scope.CreatorId, &scope.GroupId,
+		&scope.BeginInterval, &scope.EndInterval)
+	if err != nil {
+		return []models.Task{}, err
+	}
+
+	rows, err := db.Query("SELECT * FROM task_table WHERE group_id = $1 ORDER BY deadline ASC", scope.GroupId)
+	if err != nil {
+		return []models.Task{}, err
+	}
+
+	tasks := make([]models.Task, 0)
+
+	for rows.Next() {
+		task := &models.Task{}
+		err = rows.Scan(&task.Id, &task.CreatorId, &task.AssigneeId, &task.Title, &task.Description,
+			&task.State, &task.Deadline, &task.Duration, &task.Priority, &task.CreationDatetime,
+			&task.GroupId)
+		if err != nil {
+			return []models.Task{}, err
+		}
+		tasks = append(tasks, *task)
+	}
+
+	sort.Slice(tasks, func(i, j int) bool {
+		return tasks[i].Priority > tasks[j].Priority &&
+			tasks[i].Duration > tasks[j].Duration &&
+				tasks[i].Deadline < tasks[j].Deadline
+	})
+
+	scopeDuration := scope.EndInterval - scope.BeginInterval
+
+	for _, value := range tasks {
+		if value.Duration < scopeDuration {
+			table = append(table, value)
+			scopeDuration -= value.Duration
+		}
+	}
+
+	if len(table) > 0 {
+		for _, value := range table {
+			_, err := db.Exec("INSERT INTO table (scope_id, task_id) values ($1, $2)", id, value.Id)
+			if err != nil {
+				return []models.Task{}, err
+			}
+		}
+	}
+	return table, nil
 }

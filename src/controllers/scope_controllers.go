@@ -186,7 +186,7 @@ func (env *EnvironmentScope)UpdateScopeHandler(w http.ResponseWriter, r *http.Re
 	utils.Respond(w, resp)
 }
 
-func (env *EnvironmentScope) DeleteScopeHandler (w http.ResponseWriter, r *http.Request) {
+func (env *EnvironmentScope)DeleteScopeHandler(w http.ResponseWriter, r *http.Request) {
 	paramFromURL := mux.Vars(r)
 	id, err := strconv.Atoi(paramFromURL["scope_id"])
 	err = env.Db.DeleteScope(id)
@@ -195,5 +195,24 @@ func (env *EnvironmentScope) DeleteScopeHandler (w http.ResponseWriter, r *http.
 		return
 	}
 	resp := utils.Message(true, "Scope deleted", "")
+	utils.Respond(w, resp)
+}
+
+func (env *EnvironmentScope)CreateSmartScopeHandler(w http.ResponseWriter, r *http.Request) {
+	paramFromURL := mux.Vars(r)
+	id, err := strconv.Atoi(paramFromURL["scope_id"])
+	if err != nil {
+		utils.Respond(w, utils.Message(false,"Bad parameters", "Bad Request"))
+		return
+	}
+
+	tasks, err := env.Db.CreateSmartScope(id)
+	if err != nil {
+		utils.Respond(w, utils.Message(false, err.Error(),"Internal Server Error"))
+		return
+	}
+
+	resp := utils.Message(true, "Created scope", "")
+	resp["Tasks"] = tasks
 	utils.Respond(w, resp)
 }
