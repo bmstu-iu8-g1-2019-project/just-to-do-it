@@ -7,7 +7,6 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"github.com/bmstu-iu8-g1-2019-project/just-to-do-it/src/auth"
 	"github.com/bmstu-iu8-g1-2019-project/just-to-do-it/src/models"
 	"github.com/bmstu-iu8-g1-2019-project/just-to-do-it/src/services"
 	"github.com/bmstu-iu8-g1-2019-project/just-to-do-it/src/utils"
@@ -18,15 +17,9 @@ type EnvironmentGroup struct {
 }
 
 func (env *EnvironmentGroup)CreateGroupHandler(w http.ResponseWriter, r *http.Request) {
-	//проверка токена
-	_, err := auth.CheckUser(w, r)
-	if err != nil {
-		utils.Respond(w, utils.Message(false, err.Error(), "Unauthorized"))
-		return
-	}
 	//получение тела из запроса
 	group := models.Group{}
-	err = json.NewDecoder(r.Body).Decode(&group)
+	err := json.NewDecoder(r.Body).Decode(&group)
 	if err != nil {
 		utils.Respond(w, utils.Message(false,"Invalid body", "Bad Request"))
 		return
@@ -47,12 +40,6 @@ func (env *EnvironmentGroup)CreateGroupHandler(w http.ResponseWriter, r *http.Re
 }
 
 func (env *EnvironmentGroup)GetGroupHandler(w http.ResponseWriter, r *http.Request) {
-	//проверка токена
-	_, err := auth.CheckUser(w, r)
-	if err != nil {
-		utils.Respond(w, utils.Message(false, err.Error(), "Unauthorized"))
-		return
-	}
 	//получение group_id
 	paramFromURL := mux.Vars(r)
 	groupId, err := strconv.Atoi(paramFromURL["group_id"])
@@ -73,12 +60,6 @@ func (env *EnvironmentGroup)GetGroupHandler(w http.ResponseWriter, r *http.Reque
 }
 
 func (env *EnvironmentGroup)UpdateGroupHandler(w http.ResponseWriter, r *http.Request) {
-	//проверка токена
-	_, err := auth.CheckUser(w, r)
-	if err != nil {
-		utils.Respond(w, utils.Message(false, err.Error(), "Unauthorized"))
-		return
-	}
 	//получение group_id
 	paramFromURL := mux.Vars(r)
 	groupId, err := strconv.Atoi(paramFromURL["group_id"])
@@ -111,12 +92,6 @@ func (env *EnvironmentGroup)UpdateGroupHandler(w http.ResponseWriter, r *http.Re
 }
 
 func (env *EnvironmentGroup)DeleteGroupHandler(w http.ResponseWriter, r *http.Request) {
-	//проверка токена
-	_, err := auth.CheckUser(w, r)
-	if err != nil {
-		utils.Respond(w, utils.Message(false, err.Error(), "Unauthorized"))
-		return
-	}
 	//получение group_id
 	paramFromURL := mux.Vars(r)
 	groupId, err := strconv.Atoi(paramFromURL["group_id"])
