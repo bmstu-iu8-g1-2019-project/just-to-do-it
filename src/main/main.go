@@ -108,8 +108,9 @@ MAIN:
 	r.HandleFunc("/{id}/scope/{scope_id}", envScope.UpdateScopeHandler).Methods("PUT")
 	r.HandleFunc("/{id}/scope/{scope_id}", envScope.DeleteScopeHandler).Methods("DELETE")
 	r.HandleFunc("/{id}/scopes/interval", envScope.GetScopesWithIntervalHandler).Methods("GET")
-	r.HandleFunc("/{id}/scope/create/{scope_id}", envScope.CreateSmartScopeHandler).Methods("POST")
+	r.HandleFunc("/{id}/scope/{scope_id}/create", envScope.CreateSmartScopeHandler).Methods("POST")
 	r.HandleFunc("/{id}/scope/{scope_id}/task/{task_id}", envScope.AddTaskInScopeHandler).Methods("POST")
+	r.HandleFunc("/{id}/what", envScope.WhatToDoHandler).Methods("GET")
 }
 
 func main() {

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/gorilla/mux"
 
@@ -214,5 +215,27 @@ func (env *EnvironmentScope)CreateSmartScopeHandler(w http.ResponseWriter, r *ht
 
 	resp := utils.Message(true, "Created scope", "")
 	resp["Tasks"] = tasks
+	utils.Respond(w, resp)
+}
+
+func (env *EnvironmentScope)WhatToDoHandler(w http.ResponseWriter, r *http.Request) {
+	// Получение id пользователя
+	paramsFromURL := mux.Vars(r)
+	userId, err := strconv.Atoi(paramsFromURL["id"])
+	if err != nil {
+		utils.Respond(w, utils.Message(false,"Bad parameters", "Bad Request"))
+		return
+	}
+	// Получение текущего времени
+	currentTime := time.Now().Unix()
+	// Получение списка подходщих задач
+	tasks, err := env.Db.WhatToDo(currentTime, userId)
+	if err != nil {
+		utils.Respond(w, utils.Message(false, err.Error(),"Internal Server Error"))
+		return
+	}
+	// Формирование овета
+	resp := utils.Message(true, "Get tasks", "")
+	resp["tasks"] = tasks
 	utils.Respond(w, resp)
 }

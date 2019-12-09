@@ -19,7 +19,8 @@ type DatastoreScope interface {
 	GetScopesWithInterval(int, int) ([]models.Scope, error)
 	GetTasksFromScope(scopeId int) (tasks []models.Task, err error)
 	AddTaskInScope(scopeId int, taskId int) (timetable models.Timetable, err error)
-	CreateSmartScope(int) (models.Timetable, error)
+	CreateSmartScope(int) ([]models.Task, error)
+	WhatToDo(currentTime int64, creatorId int) (tasks []models.Task, err error)
 }
 
 func (db *DB)CreateScope(scope models.Scope) (models.Scope, error) {
@@ -242,9 +243,19 @@ func (db *DB)CreateSmartScope(id int)(table []models.Task, err error) {
 	}
 
 	sort.Slice(tasks, func(i, j int) bool {
-		return tasks[i].Priority > tasks[j].Priority &&
-			tasks[i].Duration > tasks[j].Duration &&
-				tasks[i].Deadline < tasks[j].Deadline
+		if tasks[i].Priority > tasks[j].Priority {
+			return true
+		}
+		if tasks[i].Priority < tasks[j].Priority {
+			return false
+		}
+		if tasks[i].Deadline < tasks[j].Deadline {
+			return true
+		}
+		if tasks[i].Deadline > tasks[j].Deadline {
+			return false
+		}
+		return tasks[i].Duration > tasks[j].Duration
 	})
 
 	scopeDuration := scope.EndInterval - scope.BeginInterval
@@ -265,4 +276,83 @@ func (db *DB)CreateSmartScope(id int)(table []models.Task, err error) {
 		}
 	}
 	return table, nil
+}
+
+func (db *DB)WhatToDo(currentTime int64, creatorId int) (tasks []models.Task, err error) {
+	rows, err := db.Query("SELECT * FROM scope WHERE begin_interval < $1 AND creator_id = $2 ORDER BY begin_interval ASC", currentTime, creatorId)
+	if err != nil {
+		return []models.Task{}, err
+	}
+	var scope models.Scope
+	for rows.Next() {
+		err = rows.Scan(&scope.Id, &scope.CreatorId, &scope.GroupId, &scope.BeginInterval, &scope.EndInterval)
+		if err != nil {
+			return []models.Task{}, err
+		}
+	}
+
+	if scope.EndInterval > currentTime {
+		tasks, err = db.GetTasksFromScope(scope.Id)
+		if err != nil {
+			return []models.Task{}, err
+		}
+		return tasks, nil
+	}
+	tasks, err = db.PushTasksInFreeTime(currentTime, creatorId, scope.EndInterval)
+	if err != nil {
+		return []models.Task{}, err
+	}
+	return tasks, nil
+}
+
+func (db *DB)PushTasksInFreeTime(currentTime int64, creatorId int, nearestEnd int64) (tasks []models.Task, err error) {
+	row := db.QueryRow("SELECT * FROM scope WHERE begin_interval > $1 AND creator_id = $2", nearestEnd, creatorId)
+	var nextScope models.Scope
+	err = row.Scan(&nextScope.Id, &nextScope.CreatorId, &nextScope.GroupId, &nextScope.BeginInterval, &nextScope.EndInterval)
+	if err != nil {
+		return []models.Task{}, err
+	}
+
+	rows, err := db.Query("SELECT * FROM task_table WHERE group_id = $1 AND creator_id = $2 ORDER BY deadline ASC", 0, creatorId)
+	if err != nil {
+		return []models.Task{}, err
+	}
+
+	for rows.Next() {
+		task := models.Task{}
+		err = rows.Scan(&task.Id, &task.CreatorId, &task.AssigneeId, &task.Title, &task.Description,
+			&task.State, &task.Deadline, &task.Duration, &task.Priority, &task.CreationDatetime,
+			&task.GroupId)
+		if err != nil {
+			return []models.Task{}, err
+		}
+		tasks = append(tasks, task)
+	}
+
+	sort.Slice(tasks, func(i, j int) bool {
+		if tasks[i].Priority > tasks[j].Priority {
+			return true
+		}
+		if tasks[i].Priority < tasks[j].Priority {
+			return false
+		}
+		if tasks[i].Deadline < tasks[j].Deadline {
+			return true
+		}
+		if tasks[i].Deadline > tasks[j].Deadline {
+			return false
+		}
+		return tasks[i].Duration > tasks[j].Duration
+	})
+
+	scopeDuration := nextScope.BeginInterval - currentTime
+
+	suitableTasks := make([]models.Task, 0)
+	for _, value := range tasks {
+		if value.Duration < scopeDuration {
+			suitableTasks = append(suitableTasks, value)
+			scopeDuration -= value.Duration
+		}
+	}
+	return suitableTasks, nil
 }
