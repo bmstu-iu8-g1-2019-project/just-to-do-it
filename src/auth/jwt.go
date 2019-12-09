@@ -7,8 +7,10 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/gorilla/mux"
 	"github.com/dgrijalva/jwt-go"
+	"github.com/gorilla/mux"
+
+	"github.com/bmstu-iu8-g1-2019-project/just-to-do-it/src/utils"
 )
 
 func CreateAccessToken(user_id int) (string, error) {
@@ -170,4 +172,35 @@ func CheckUser(w http.ResponseWriter, r *http.Request) (int, error) {
 		return 0, err
 	}
 	return userId, nil
+}
+
+var JwtCheck = func(next http.Handler) http.Handler {
+
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request){
+		notAuth := []string{"/register", "/login"} // List of endpoints for which authorization is not required
+		requestPath := r.URL.Path // Current request path
+
+		// We check if the authentication request does not require, we serve the request if it is not needed
+		for _, value := range notAuth {
+
+			if value == requestPath {
+				next.ServeHTTP(w, r)
+				return
+			}
+		}
+		//
+		paramFromURL := mux.Vars(r)
+		userId, err := strconv.Atoi(paramFromURL["id"])
+		if err != nil {
+			utils.Respond(w, utils.Message(false, err.Error(), "Unauthorized"))
+			return
+		}
+		// Check and in case of timeout refresh token
+		err = TokenValid(w, r, userId)
+		if err != nil {
+			utils.Respond(w, utils.Message(false, err.Error(), "Unauthorized"))
+			return
+		}
+		next.ServeHTTP(w, r)
+	})
 }

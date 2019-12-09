@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/bmstu-iu8-g1-2019-project/just-to-do-it/src/auth"
 	"log"
 	"net/http"
 	"time"
@@ -60,6 +61,7 @@ MAIN:
 	envTask := &controllers.EnvironmentTask{Db: db}
 	envScope := &controllers.EnvironmentScope{Db: db}
 
+	r.Use(auth.JwtCheck)
 	//user
 	r.HandleFunc("/register", envUser.ResponseRegisterHandler).Methods("POST")
 	r.HandleFunc("/login", envUser.ResponseLoginHandler).Methods("POST")

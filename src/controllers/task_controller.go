@@ -7,7 +7,6 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"github.com/bmstu-iu8-g1-2019-project/just-to-do-it/src/auth"
 	"github.com/bmstu-iu8-g1-2019-project/just-to-do-it/src/models"
 	"github.com/bmstu-iu8-g1-2019-project/just-to-do-it/src/services"
 	"github.com/bmstu-iu8-g1-2019-project/just-to-do-it/src/utils"
@@ -18,10 +17,11 @@ type EnvironmentTask struct {
 }
 
 func(env *EnvironmentTask) GetTasksHandler(w http.ResponseWriter, r *http.Request) {
-	//проверка токена
-	userId, err := auth.CheckUser(w, r)
+	// Получение id пользователя
+	paramFromURL := mux.Vars(r)
+	userId, err := strconv.Atoi(paramFromURL["id"])
 	if err != nil {
-		utils.Respond(w, utils.Message(false, err.Error(), "Unauthorized"))
+		utils.Respond(w, utils.Message(false,"Invalid id","Bad Request"))
 		return
 	}
 	//получение информации из url
@@ -60,14 +60,14 @@ func(env *EnvironmentTask) GetTasksHandler(w http.ResponseWriter, r *http.Reques
 }
 
 func (env *EnvironmentTask)GetTaskHandler(w http.ResponseWriter, r *http.Request) {
-	//проверка токена
-	userId, err := auth.CheckUser(w, r)
+	// Получение id пользователя
+	paramFromURL := mux.Vars(r)
+	userId, err := strconv.Atoi(paramFromURL["id"])
 	if err != nil {
-		utils.Respond(w, utils.Message(false, err.Error(), "Unauthorized"))
+		utils.Respond(w, utils.Message(false,"Invalid id","Bad Request"))
 		return
 	}
 	//получение task_id
-	paramFromURL := mux.Vars(r)
 	taskId, err := strconv.Atoi(paramFromURL["task_id"])
 	if err != nil {
 		utils.Respond(w, utils.Message(false,"Invalid id","Bad Request"))
@@ -93,14 +93,14 @@ func (env *EnvironmentTask)GetTaskHandler(w http.ResponseWriter, r *http.Request
 }
 
 func (env *EnvironmentTask)CreateTask(w http.ResponseWriter, r *http.Request) {
-	//проверка токена
-	id, err := auth.CheckUser(w, r)
+	// Получение id пользователя
+	paramFromURL := mux.Vars(r)
+	id, err := strconv.Atoi(paramFromURL["id"])
 	if err != nil {
-		utils.Respond(w, utils.Message(false, err.Error(), "Unauthorized"))
+		utils.Respond(w, utils.Message(false,"Invalid id","Bad Request"))
 		return
 	}
 	//получение group_id (если нет group_id = 0)
-	paramFromURL := mux.Vars(r)
 	groupId, _ := strconv.Atoi(paramFromURL["group_id"])
 	//получение тела запроса
 	task := models.Task{}
@@ -124,14 +124,14 @@ func (env *EnvironmentTask)CreateTask(w http.ResponseWriter, r *http.Request) {
 
 //update
 func (env *EnvironmentTask)UpdateTaskHandler(w http.ResponseWriter, r *http.Request) {
-	//проверка токена
-	userId, err := auth.CheckUser(w, r)
+	// Получение id пользователя
+	paramFromURL := mux.Vars(r)
+	userId, err := strconv.Atoi(paramFromURL["id"])
 	if err != nil {
-		utils.Respond(w, utils.Message(false, err.Error(), "Unauthorized"))
+		utils.Respond(w, utils.Message(false,"Invalid id","Bad Request"))
 		return
 	}
 	//получение task_id
-	paramFromURL := mux.Vars(r)
 	taskId, err := strconv.Atoi(paramFromURL["task_id"])
 	if err != nil {
 		utils.Respond(w, utils.Message(false,"Invalid id","Bad Request"))
