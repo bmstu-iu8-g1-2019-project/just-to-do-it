@@ -93,6 +93,14 @@ MAIN:
 	r.HandleFunc("/{id}/checklist/{checklist_id}/items", envTask.GetChecklistItems).Methods("GET")
 	r.HandleFunc("/{id}/checklist/{checklist_id}/item/{item_id}", envTask.UpdateItemHandler).Methods("PUT")
 	r.HandleFunc("/{id}/item/{item_id}", envTask.DeleteItemHandler).Methods("DELETE")
+	//track
+	r.HandleFunc("/{id}/track/{track_id}/task/create", envGroup.CreateTaskInTrackHandler).Methods("POST")
+	r.HandleFunc("/{id}/track/{track_id}/task/{task_id}", envGroup.AddTaskInTrackHandler).Methods("POST")
+	r.HandleFunc("/{id}/group/{group_id}/track/create", envGroup.CreateTrackHandler).Methods("POST")
+	r.HandleFunc("/{id}/track/{track_id}", envGroup.GetTrackHandler).Methods("GET")
+	r.HandleFunc("/{id}/track/{track_id}", envGroup.UpdateTrackHandler).Methods("PUT")
+	r.HandleFunc("/{id}/track/{track_id}", envGroup.DeleteTrackHandler).Methods("DELETE")
+	r.HandleFunc("/{id}/track/{track_id}/task/{task_id}", envGroup.DeleteTaskInTrack).Methods("DELETE")
 }
 
 func main() {

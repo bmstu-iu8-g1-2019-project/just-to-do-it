@@ -9,6 +9,14 @@ type DatastoreGroup interface {
 	GetGroup(int) (models.Group, error)
 	UpdateGroup(int, models.Group) (models.Group, error)
 	DeleteGroup(int) error
+	//
+	AddTaskInTrack(int, int) (models.TrackTaskPrevious, error)
+	CreateTaskInTrack(int, int, models.Task) (models.TrackTaskPrevious, models.Task, error)
+	DeleteTaskInTrack(int, int) error
+	DeleteTrack(int) error
+	UpdateTrack(int, models.Track) (models.Track, error)
+	GetTrack(int) (models.Track, []models.Task, error)
+	CreateTrack(int, models.Track) (models.Track, error)
 }
 
 func (db *DB)CreateGroup(group models.Group) (models.Group, error) {

@@ -59,6 +59,7 @@ func (db *DB) sendMail(login string) (err error) {
 	}
 	from, _ := os.LookupEnv("from")
 	pass, _ := os.LookupEnv("pass")
+	fmt.Println(from, pass)
 	msg := fmt.Sprintf(msgConst, from, user.Email, url + obj.Hash)
 
 	err = smtp.SendMail("smtp.gmail.com:587",
