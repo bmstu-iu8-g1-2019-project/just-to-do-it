@@ -2,14 +2,11 @@ package controllers
 
 import (
 	"encoding/json"
-	"github.com/gorilla/mux"
-	"net/http"
-	"strconv"
-
 	"github.com/bmstu-iu8-g1-2019-project/just-to-do-it/src/auth"
 	"github.com/bmstu-iu8-g1-2019-project/just-to-do-it/src/models"
 	"github.com/bmstu-iu8-g1-2019-project/just-to-do-it/src/services"
 	"github.com/bmstu-iu8-g1-2019-project/just-to-do-it/src/utils"
+	"net/http"
 )
 
 type EnvironmentUser struct {
@@ -104,11 +101,10 @@ func (env *EnvironmentUser) ConfirmEmailHandler (w http.ResponseWriter, r *http.
 }
 
 func (env *EnvironmentUser) GetUserHandler (w http.ResponseWriter, r *http.Request) {
-	// Получение id пользователя
-	paramFromURL := mux.Vars(r)
-	id, err := strconv.Atoi(paramFromURL["id"])
+	//проверка токена
+	id, err := auth.CheckUser(w, r)
 	if err != nil {
-		utils.Respond(w, utils.Message(false,"Invalid id","Bad Request"))
+		utils.Respond(w, utils.Message(false, err.Error(), "Unauthorized"))
 		return
 	}
 	// функция возвращает из бд информацию о юезере
@@ -124,11 +120,10 @@ func (env *EnvironmentUser) GetUserHandler (w http.ResponseWriter, r *http.Reque
 }
 
 func (env *EnvironmentUser) UpdateUserHandler (w http.ResponseWriter, r *http.Request) {
-	// Получение id пользователя
-	paramFromURL := mux.Vars(r)
-	id, err := strconv.Atoi(paramFromURL["id"])
+	//проверка токена
+	id, err := auth.CheckUser(w, r)
 	if err != nil {
-		utils.Respond(w, utils.Message(false,"Invalid id","Bad Request"))
+		utils.Respond(w, utils.Message(false, err.Error(), "Unauthorized"))
 		return
 	}
 	// получаем из запроса структуру
@@ -157,11 +152,10 @@ func (env *EnvironmentUser) UpdateUserHandler (w http.ResponseWriter, r *http.Re
 }
 
 func (env *EnvironmentUser) DeleteUserHandler (w http.ResponseWriter, r *http.Request) {
-	// Получение id пользователя
-	paramFromURL := mux.Vars(r)
-	id, err := strconv.Atoi(paramFromURL["id"])
+	//проверка токена
+	id, err := auth.CheckUser(w, r)
 	if err != nil {
-		utils.Respond(w, utils.Message(false,"Invalid id","Bad Request"))
+		utils.Respond(w, utils.Message(false, err.Error(), "Unauthorized"))
 		return
 	}
 	// удаление из бд пользователя
