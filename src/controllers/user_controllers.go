@@ -104,10 +104,11 @@ func (env *EnvironmentUser) ConfirmEmailHandler (w http.ResponseWriter, r *http.
 }
 
 func (env *EnvironmentUser) GetUserHandler (w http.ResponseWriter, r *http.Request) {
-	//проверка токена
-	id, err := auth.CheckUser(w, r)
+	// Получение id пользователя
+	paramFromURL := mux.Vars(r)
+	id, err := strconv.Atoi(paramFromURL["id"])
 	if err != nil {
-		utils.Respond(w, utils.Message(false, err.Error(), "Unauthorized"))
+		utils.Respond(w, utils.Message(false,"Invalid id","Bad Request"))
 		return
 	}
 	// функция возвращает из бд информацию о юезере
