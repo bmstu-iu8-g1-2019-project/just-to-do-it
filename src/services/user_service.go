@@ -46,8 +46,8 @@ func (db *DB)Register(user models.User) (models.User, string, string) {
 	}
 	// КОСТЫЛЬ
 	if user.Id == 0 {
-		_, err = db.Query("INSERT INTO user_table (email, login, fullname, password, acc_verified) values ($1, $2, $3, $4, false)",
-			user.Email, user.Login, user.Fullname, hashedPassword)
+		err = db.QueryRow("INSERT INTO user_table (email, login, fullname, password, acc_verified) values ($1, $2, $3, $4, false)  RETURNING id",
+			user.Email, user.Login, user.Fullname, hashedPassword).Scan(&user.Id)
 		if err != nil {
 			return models.User{}, "Query error", "Internal Server Error"
 		}
