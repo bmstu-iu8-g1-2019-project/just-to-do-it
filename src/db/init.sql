@@ -56,3 +56,29 @@ CREATE TABLE if not exists track_task_previous (
     previous_id int,
     track_id int
 );
+
+CREATE TABLE if not exists checklist_table (
+    id SERIAL PRIMARY KEY UNIQUE,
+    task_id int,
+    name varchar(128)
+);
+
+CREATE TABLE if not exists checklistItem_table (
+    id SERIAL PRIMARY KEY UNIQUE,
+    checklist_id int,
+    name varchar(128),
+    state varchar(32)
+);
+
+CREATE TABLE if not exists scope (
+    id SERIAL PRIMARY KEY UNIQUE,
+    creator_id int,
+    group_id int,
+    begin_interval int,
+    end_interval int
+);
+
+CREATE TABLE if not exists timetable (
+    scope_id int,
+    task_id int
+);

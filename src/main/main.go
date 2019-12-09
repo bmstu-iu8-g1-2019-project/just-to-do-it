@@ -58,6 +58,7 @@ MAIN:
 	envUser := &controllers.EnvironmentUser{Db: db}
 	envGroup := &controllers.EnvironmentGroup{Db: db}
 	envTask := &controllers.EnvironmentTask{Db: db}
+	envScope := &controllers.EnvironmentScope{Db: db}
 
 	//user
 	r.HandleFunc("/register", envUser.ResponseRegisterHandler).Methods("POST")
@@ -101,6 +102,15 @@ MAIN:
 	r.HandleFunc("/{id}/track/{track_id}", envGroup.UpdateTrackHandler).Methods("PUT")
 	r.HandleFunc("/{id}/track/{track_id}", envGroup.DeleteTrackHandler).Methods("DELETE")
 	r.HandleFunc("/{id}/track/{track_id}/task/{task_id}", envGroup.DeleteTaskInTrack).Methods("DELETE")
+	//scope
+	r.HandleFunc("/{id}/group/{group_id}/scope/create", envScope.CreateScopeHandler).Methods("POST")
+	r.HandleFunc("/{id}/scopes", envScope.GetScopesHandler).Methods("GET")
+	r.HandleFunc("/{id}/scope/{scope_id}", envScope.UpdateScopeHandler).Methods("PUT")
+	r.HandleFunc("/{id}/scope/{scope_id}", envScope.DeleteScopeHandler).Methods("DELETE")
+	r.HandleFunc("/{id}/scopes/interval", envScope.GetScopesWithIntervalHandler).Methods("GET")
+	r.HandleFunc("/{id}/scope/{scope_id}/create", envScope.CreateSmartScopeHandler).Methods("POST")
+	r.HandleFunc("/{id}/scope/{scope_id}/task/{task_id}", envScope.AddTaskInScopeHandler).Methods("POST")
+	r.HandleFunc("/{id}/what", envScope.WhatToDoHandler).Methods("GET")
 }
 
 func main() {
