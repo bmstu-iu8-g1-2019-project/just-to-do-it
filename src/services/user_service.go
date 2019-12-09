@@ -44,10 +44,19 @@ func (db *DB)Register(user models.User) (models.User, string, string) {
 	if user.Fullname == "" {
 		user.Fullname = user.Login
 	}
-	err = db.QueryRow("INSERT INTO user_table (email, login, fullname, password, acc_verified) values ($1, $2, $3, $4, false)  RETURNING id",
-		user.Email, user.Login, user.Fullname, hashedPassword).Scan(&user.Id)
-	if err != nil {
-		return models.User{}, "Query error", "Internal Server Error"
+	// КОСТЫЛЬ
+	if user.Id == 0 {
+		_, err = db.Query("INSERT INTO user_table (email, login, fullname, password, acc_verified) values ($1, $2, $3, $4, false)",
+			user.Email, user.Login, user.Fullname, hashedPassword)
+		if err != nil {
+			return models.User{}, "Query error", "Internal Server Error"
+		}
+	} else {
+		_, err = db.Query("INSERT INTO user_table (id, email, login, fullname, password, acc_verified) values ($1, $2, $3, $4, $5, false)",
+			user.Id, user.Email, user.Login, user.Fullname, hashedPassword)
+		if err != nil {
+			return models.User{}, "Query error", "Internal Server Error"
+		}
 	}
 	user.Password = ""
 	// an entry in the additional table that stores the username its hash and decay time link to confirm mail

@@ -57,7 +57,7 @@ func (env *EnvironmentUser) ResponseRegisterHandler (w http.ResponseWriter, r *h
 		return
 	}
 	// проверка полей
-	if user.Password == ""  || user.Login == "" || user.Email == ""{
+	if user.Password == ""  || user.Login == "" || user.Email == "" {
 		utils.Respond(w, utils.Message(false,"Invalid body","Bad Request"))
 		return
 	}
