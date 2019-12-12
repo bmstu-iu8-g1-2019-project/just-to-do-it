@@ -27,8 +27,15 @@ func (env *EnvironmentGroup)CreateGroupHandler(w http.ResponseWriter, r *http.Re
 	if group.Title == "" || group.Description == "" {
 
 	}
+	// Получение userId
+	paramFromURL := mux.Vars(r)
+	userId, err := strconv.Atoi(paramFromURL["id"])
+	if err != nil {
+		utils.Respond(w, utils.Message(false,"Invalid id", "Bad Request"))
+		return
+	}
 	//создание группы
-	group, err = env.Db.CreateGroup(group)
+	group, err = env.Db.CreateGroup(group, userId)
 	if err != nil {
 		utils.Respond(w, utils.Message(false, err.Error(), "Internal Server Error"))
 		return

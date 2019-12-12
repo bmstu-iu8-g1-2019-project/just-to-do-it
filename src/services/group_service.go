@@ -5,7 +5,7 @@ import (
 )
 
 type DatastoreGroup interface {
-	CreateGroup(models.Group) (models.Group, error)
+	CreateGroup(models.Group, int) (models.Group, error)
 	GetGroup(int) (models.Group, error)
 	UpdateGroup(int, models.Group) (models.Group, error)
 	DeleteGroup(int) error
