@@ -73,6 +73,7 @@ MAIN:
 	r.HandleFunc("/{id}/group/create", envGroup.CreateGroupHandler).Methods("POST")
 	r.HandleFunc("/{id}/group/{group_id}/task/create", envTask.CreateTask).Methods("POST")
 	r.HandleFunc("/{id}/group/{group_id}", envGroup.GetGroupHandler).Methods("GET")
+	r.HandleFunc("/{id}/groups", envGroup.GetGroupsByUserId).Methods("GET")
 	r.HandleFunc("/{id}/group/{group_id}", envGroup.UpdateGroupHandler).Methods("PUT")
 	r.HandleFunc("/{id}/group/{group_id}", envGroup.DeleteGroupHandler).Methods("DELETE")
 	//task

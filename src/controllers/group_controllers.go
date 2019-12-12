@@ -109,3 +109,23 @@ func (env *EnvironmentGroup)DeleteGroupHandler(w http.ResponseWriter, r *http.Re
 	resp := utils.Message(true, "Deleted group", "")
 	utils.Respond(w, resp)
 }
+
+func (env *EnvironmentGroup)GetGroupsByUserId(w http.ResponseWriter, r *http.Request) {
+	//получение user_id
+	paramFromURL := mux.Vars(r)
+	userId, err := strconv.Atoi(paramFromURL["id"])
+	if err != nil {
+		utils.Respond(w, utils.Message(false,"Invalid id","Bad Request"))
+		return
+	}
+	// Получение всех групп пользователя
+	groups, err := env.Db.GetGroups(userId)
+	if err != nil {
+		utils.Respond(w, utils.Message(false, err.Error(),"Internal Server Error"))
+		return
+	}
+	// Формирование ответа
+	resp := utils.Message(true, "Get groups", "")
+	resp["groups"] = groups
+	utils.Respond(w, resp)
+}

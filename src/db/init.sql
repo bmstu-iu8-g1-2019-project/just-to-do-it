@@ -33,6 +33,7 @@ CREATE TABLE if not exists task_table (
 
 CREATE TABLE if not exists group_table (
     id SERIAL PRIMARY KEY UNIQUE,
+    creator_id int,
     title varchar(32),
     description varchar(128)
 );

@@ -9,6 +9,7 @@ type DatastoreGroup interface {
 	GetGroup(int) (models.Group, error)
 	UpdateGroup(int, models.Group) (models.Group, error)
 	DeleteGroup(int) error
+	GetGroups(userId int) ([]models.Group, error)
 	//
 	AddTaskInTrack(int, int) (models.TrackTaskPrevious, error)
 	CreateTaskInTrack(int, int, models.Task) (models.TrackTaskPrevious, models.Task, error)
@@ -19,9 +20,9 @@ type DatastoreGroup interface {
 	CreateTrack(int, models.Track) (models.Track, error)
 }
 
-func (db *DB)CreateGroup(group models.Group) (models.Group, error) {
-	err := db.QueryRow("INSERT INTO group_table (title, description) values ($1, $2)  RETURNING id",
-		group.Title, group.Description).Scan(&group.Id)
+func (db *DB)CreateGroup(group models.Group, userId int) (models.Group, error) {
+	err := db.QueryRow("INSERT INTO group_table (creator_id, title, description) values ($1, $2, $3)  RETURNING id",
+		userId, group.Title, group.Description).Scan(&group.Id)
 	if err != nil {
 		return models.Group{}, err
 	}
@@ -29,13 +30,31 @@ func (db *DB)CreateGroup(group models.Group) (models.Group, error) {
 }
 
 func (db *DB)GetGroup(id int) (group models.Group, err error) {
-	row := db.QueryRow("SELECT id, title, description FROM group_table WHERE id = $1", id)
-	err = row.Scan(&group.Id, &group.Title, &group.Description)
+	row := db.QueryRow("SELECT id, creator_id, title, description FROM group_table WHERE id = $1", id)
+	err = row.Scan(&group.Id, &group.CreatorId, &group.Title, &group.Description)
 	if err != nil {
 		return group, err
 	}
 	return group, nil
 }
+
+func (db *DB)GetGroups(userId int) ([]models.Group, error) {
+	groups := make([]models.Group, 0)
+	rows, err := db.Query("SELECT id, creator_id, title, description FROM group_table WHERE creator_id = $1", userId)
+	if err != nil {
+		return []models.Group{}, err
+	}
+	for rows.Next() {
+		group := models.Group{}
+		err = rows.Scan(&group.Id, &group.CreatorId, &group.Title, &group.Description)
+		if err != nil {
+			return []models.Group{}, err
+		}
+		groups = append(groups, group)
+	}
+	return groups, nil
+}
+
 
 func (db *DB)UpdateGroup(id int, group models.Group) (models.Group, error) {
 	group.Id = id
