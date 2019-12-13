@@ -190,7 +190,7 @@ func (db *DB)GetScopes(params []int) (scopes []models.Scope, err error) {
 
 func (db *DB)UpdateScope(scopeId int, scope models.Scope) (models.Scope, error) {
 	_, err := db.Exec("UPDATE scope SET group_id = $1, begin_interval = $2," +
-		"end_interval = $3 where id = $4", scopeId)
+		"end_interval = $3 where id = $4", scope.GroupId, scope.BeginInterval, scope.EndInterval, scopeId)
 	if err != nil {
 		return models.Scope{}, err
 	}
