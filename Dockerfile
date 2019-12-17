@@ -1,13 +1,25 @@
-FROM ubuntu:18.04
+FROM golang:1.9.2
 
-RUN apt-get update && \
-    apt-get -y install golang && \
-    apt-get -y install git && \
-    go get github.com/lib/pq \
-    github.com/gorilla/mux
+RUN apt-get -y update
+RUN apt-get install -y tree wget curl
 
-COPY . .
+RUN curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
 
-EXPOSE 5000
+RUN mkdir go && mkdir go/src && mkdir go/bin && mkdir go/pkg
 
-CMD go test
+ENV GOPATH $HOME/go
+ENV PATH $GOPATH/bin:/usr/local/go/bin:$PATH
+
+RUN curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
+
+USER root
+
+WORKDIR $GOPATH/src/github.com/bmstu-iu8-g1-2019-project/just-to-do-it
+ADD ./ $GOPATH/src/github.com/bmstu-iu8-g1-2019-project/just-to-do-it
+
+RUN tree -L 4 ./
+
+RUN chmod +x ./scripts/*
+RUN ./scripts/build.sh
+
+CMD ["./server.app"]

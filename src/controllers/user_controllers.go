@@ -1,70 +1,97 @@
 package controllers
 
 import (
-	"database/sql"
 	"encoding/json"
+	"github.com/bmstu-iu8-g1-2019-project/just-to-do-it/src/auth"
+	"github.com/bmstu-iu8-g1-2019-project/just-to-do-it/src/models"
+	"github.com/bmstu-iu8-g1-2019-project/just-to-do-it/src/services"
+	"github.com/bmstu-iu8-g1-2019-project/just-to-do-it/src/utils"
 	"net/http"
-	"strconv"
-
-	"golang.org/x/crypto/bcrypt"
-	"github.com/gorilla/mux"
-	"dev-s/src/services"
-	"dev-s/src/models"
 )
 
 type EnvironmentUser struct {
-	Db services.Datastore
+	Db services.DatastoreUser
 }
 
 func (env *EnvironmentUser) ResponseLoginHandler(w http.ResponseWriter, r *http.Request) {
-	received_object := models.User{}
-	err := json.NewDecoder(r.Body).Decode(&received_object)
+	// Получение логина и пароля из тела запроса
+	user := models.User{}
+	err := json.NewDecoder(r.Body).Decode(&user)
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
+		utils.Respond(w, utils.Message(false,"Invalid body","Bad Request"))
 		return
 	}
-
-	obj, err := env.Db.Login(received_object.Login)
+	// Функция проверяет логин и пароль в бд и возвращает информацию о пользователе
+	user, err = env.Db.Login(user.Login, user.Password)
 	if err != nil {
-		if err == sql.ErrNoRows {
-			w.WriteHeader(http.StatusNotFound)
-			return
-		}
-		w.WriteHeader(http.StatusInternalServerError)
+		utils.Respond(w, utils.Message(false,"Invalid login or password","Unauthorized"))
 		return
 	}
-	if err = bcrypt.CompareHashAndPassword([]byte(obj.Password), []byte(received_object.Password)); err != nil {
-		w.WriteHeader(http.StatusUnauthorized)
+	// Генерация access токена
+	accToken, err := auth.CreateAccessToken(user.Id)
+	if err != nil {
+		utils.Respond(w, utils.Message(false, err.Error(), "Unauthorized"))
 		return
 	}
-	w.WriteHeader(http.StatusOK)
+	auth.SetCookieForAccToken(w, accToken)
+	// Генарция refresh токена
+	refToken, err := auth.CreateRefreshToken(user.Id)
+	if err != nil {
+		utils.Respond(w, utils.Message(false, err.Error(), "Unauthorized"))
+		return
+	}
+	auth.SetCookieForRefToken(w, refToken)
+	// Формирование ответа
+	resp := utils.Message(true, "Logged In", "")
+	resp["user"] = user
+	utils.Respond(w, resp)
 }
 
 func (env *EnvironmentUser) ResponseRegisterHandler (w http.ResponseWriter, r *http.Request) {
-	obj := &models.User{}
-	err := json.NewDecoder(r.Body).Decode(obj)
+	// получение json'a
+	user := models.User{}
+	err := json.NewDecoder(r.Body).Decode(&user)
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
+		utils.Respond(w, utils.Message(false,"Invalid body","Bad Request"))
 		return
 	}
-	if obj.Password == ""  || obj.Login == "" || obj.Email == ""{
-		w.WriteHeader(http.StatusBadRequest)
+	// проверка полей
+	if user.Password == ""  || user.Login == "" || user.Email == "" {
+		utils.Respond(w, utils.Message(false,"Invalid body","Bad Request"))
 		return
 	}
-	err = env.Db.Register(*obj)
+	// функция добавляет пользователя в бд и хэширует его пароль
+	user, msg, errStr := env.Db.Register(user)
+	if msg != "" {
+		utils.Respond(w, utils.Message(false, msg, errStr))
+		return
+	}
+	// Генераци access токена
+	accToken, err := auth.CreateAccessToken(user.Id)
 	if err != nil {
-		if err == sql.ErrNoRows {
-			w.WriteHeader(http.StatusUnauthorized)
-			return
-		}
-		w.WriteHeader(http.StatusBadRequest)
+		utils.Respond(w, utils.Message(false, err.Error(), "Unauthorized"))
 		return
 	}
-	w.WriteHeader(http.StatusOK)
+	auth.SetCookieForAccToken(w, accToken)
+	// Генерация refresh токена
+	refToken, err := auth.CreateRefreshToken(user.Id)
+	if err != nil {
+		utils.Respond(w, utils.Message(false, err.Error(), "Unauthorized"))
+		return
+	}
+	auth.SetCookieForRefToken(w, refToken)
+	// Формирование ответа
+	resp := utils.Message(true, "User created", "")
+	resp["user"] = user
+	utils.Respond(w, resp)
 }
 
 func (env *EnvironmentUser) ConfirmEmailHandler (w http.ResponseWriter, r *http.Request) {
+	// получние хэша из ссылки
 	hash := r.URL.Query().Get("hash")
+	// функция в случае успешного подтверждения изменяет
+	// поле acc_verified у юзера на true
+	// в случае перехода по старой ссылке отправляет новое письмо
 	err := env.Db.Confirm(hash)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -73,61 +100,71 @@ func (env *EnvironmentUser) ConfirmEmailHandler (w http.ResponseWriter, r *http.
 	w.WriteHeader(http.StatusOK)
 }
 
-func (env *EnvironmentUser) UpdateUserHandler (w http.ResponseWriter, r *http.Request) {
-	received_object := models.User{}
-	err := json.NewDecoder(r.Body).Decode(&received_object)
+func (env *EnvironmentUser) GetUserHandler (w http.ResponseWriter, r *http.Request) {
+	//проверка токена
+	id, err := auth.CheckUser(w, r)
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
+		utils.Respond(w, utils.Message(false, err.Error(), "Unauthorized"))
 		return
 	}
-	paramFromURL := mux.Vars(r)
-	id, err := strconv.Atoi(paramFromURL["id"])
+	// функция возвращает из бд информацию о юезере
+	user, err := env.Db.GetUser(int(id))
 	if err != nil {
-		w.WriteHeader(http.StatusNotFound)
+		utils.Respond(w, utils.Message(false,"Not found user in db","Internal Server Error"))
 		return
 	}
-	err = env.Db.UpdateUser(int(id), received_object)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-	w.WriteHeader(http.StatusOK)
+	// формирование ответа
+	resp := utils.Message(true, "Get user", "")
+	resp["user"] = user
+	utils.Respond(w, resp)
 }
 
-func (env *EnvironmentUser) GetUserHandler (w http.ResponseWriter, r *http.Request) {
-	paramFromURL := mux.Vars(r)
-	id, err := strconv.Atoi(paramFromURL["id"])
+func (env *EnvironmentUser) UpdateUserHandler (w http.ResponseWriter, r *http.Request) {
+	//проверка токена
+	id, err := auth.CheckUser(w, r)
 	if err != nil {
-		w.WriteHeader(http.StatusNotFound)
+		utils.Respond(w, utils.Message(false, err.Error(), "Unauthorized"))
 		return
 	}
-	received_object, err := env.Db.GetUser(int(id))
+	// получаем из запроса структуру
+	user := models.User{}
+	err = json.NewDecoder(r.Body).Decode(&user)
 	if err != nil {
-		if err == sql.ErrNoRows {
-			w.WriteHeader(http.StatusUnauthorized)
-		}
-		w.WriteHeader(http.StatusInternalServerError)
+		utils.Respond(w, utils.Message(false,"Invalid body","Bad Request"))
 		return
 	}
-	json.NewEncoder(w).Encode(received_object)
-	w.WriteHeader(http.StatusOK)
+	// проверка тела json'a
+	if  user.Email == "" || user.Fullname == "" ||
+		user.Login == "" || user.Password == "" {
+		utils.Respond(w, utils.Message(false,"Invalid body","Bad Request"))
+		return
+	}
+	// обновляем юзера по пришедшему из path id и json
+	user, err = env.Db.UpdateUser(int(id), user)
+	if err != nil {
+		utils.Respond(w, utils.Message(false, "Database error", "Internal Server Error"))
+		return
+	}
+	// формирование ответа
+	resp := utils.Message(true, "Update user", "")
+	resp["user"] = user
+	utils.Respond(w, resp)
 }
 
 func (env *EnvironmentUser) DeleteUserHandler (w http.ResponseWriter, r *http.Request) {
-	paramFromURL := mux.Vars(r)
-	id, err := strconv.Atoi(paramFromURL["id"])
+	//проверка токена
+	id, err := auth.CheckUser(w, r)
 	if err != nil {
-		w.WriteHeader(http.StatusNotFound)
+		utils.Respond(w, utils.Message(false, err.Error(), "Unauthorized"))
 		return
 	}
+	// удаление из бд пользователя
 	err = env.Db.DeleteUser(id)
 	if err != nil {
-		if err == sql.ErrNoRows {
-			w.WriteHeader(http.StatusNotFound)
-			return
-		}
-		w.WriteHeader(http.StatusInternalServerError)
+		utils.Respond(w, utils.Message(false,err.Error(),"Internal Server Error"))
 		return
 	}
-	w.WriteHeader(http.StatusOK)
+	// формирование ответа
+	resp := utils.Message(true, "User deleted", "")
+	utils.Respond(w, resp)
 }

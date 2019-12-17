@@ -1,0 +1,38 @@
+version: '3'
+
+volumes:
+  db: {}
+services:
+  db:
+    container_name: todoapp_postgres
+    command: postgres -c listen_addresses='*'
+    build:
+      ./src/db/
+    volumes:
+      - db:/var/lib/postgresql
+    environment:
+     - POSTGRES_DB=todoapp
+     - POSTGRES_USER=docker
+     - POSTGRES_PASSWORD=docker
+    ports:
+      - "5432:5432"
+
+  app:
+    build: .
+    environment:
+     - DB_driver=${DB_driver}
+     - DB_username=${DB_username}
+     - DB_password=${DB_password}
+     - DB_host=${DB_host}
+     - DB_port=${DB_port}
+     - DB_name=${DB_name}
+     - DB_sslmode=${DB_sslmode}
+     - from=${from}
+     - pass=${pass}
+     - secret=${secret}
+    ports:
+      - "80:8080"
+    depends_on:
+      - db
+    links:
+      - db
