@@ -1,0 +1,45 @@
+version: "3.8"
+
+services:
+  app:
+    container_name: just-to-do-it
+    build:
+      context: ./..
+      dockerfile: deployments/Dockerfile
+    ports:
+      - "12342:12342"
+    env_file:
+      - ../configs/config.env
+    networks:
+      - network
+    depends_on:
+      - postgres
+    restart: always
+
+  postgres:
+    image: postgres:13.2
+    container_name: just-to-do-it-db
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: qwerty
+      POSTGRES_DB: just-to-do-it-db
+    volumes:
+      - ../assets/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - network
+    restart: always
+
+  adminer:
+    image: adminer
+    container_name: just-to-do-it-adminer
+    restart: always
+    ports:
+      - "17860:8080"
+    networks:
+      - network
+    depends_on:
+      - postgres
+
+networks:
+  network:
+    driver: bridge
