@@ -9,7 +9,7 @@ RUN /etc/init.d/postgresql start &&\
     createdb -O docker todoapp &&\
     /etc/init.d/postgresql stop
 
-ADD init.sql /docker-entrypoint-initdb.d/
+ADD ../../assets/init.sql /docker-entrypoint-initdb.d/
 
 RUN echo "host all  all    0.0.0.0/0  md5" >> /etc/postgresql/12/main/pg_hba.conf
 
